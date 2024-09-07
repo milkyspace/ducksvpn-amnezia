@@ -26,7 +26,10 @@ function installAmnezia() {
 function installTg() {
   apt-get install unzip
   apt-get install python3
-  apt-get install python3-pip -y
+  sudo apt install python3-venv -y
+  python3 -m venv .venv
+  source .venv/bin/activate
+  pip install requests
   pip install -r ./requirements.txt
   echo "[Unit]
         Description=Admin Bot for Wireguard
