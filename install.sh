@@ -1,4 +1,4 @@
-function installAmnezia() {
+function installServer() {
   curl -sSL https://get.docker.com | sh
   sudo usermod -aG docker $(whoami)
   docker pull vkolesnev/amneziavpn:latest
@@ -24,13 +24,10 @@ function installAmnezia() {
 }
 
 function installTg() {
-  apt-get install unzip
-  apt-get install python3
-  sudo apt install python3-venv -y
-  python3 -m venv .venv
-  source .venv/bin/activate
-  pip install requests
-  pip install -r requirements.txt
+  apt-get install unzip -y
+  apt-get install python3 -y
+  apt-get install pip3 -y
+  pip3 install requirements.txt --break-system-packages
   echo "[Unit]
         Description=Admin Bot for Wireguard
         After=multi-user.target
@@ -54,5 +51,5 @@ function installTg() {
   echo "Congratulations! Now you must configure the .env (copy .env.example to .env) configuration file at .env"
 }
 
-installAmnezia
+installServer
 installTg
