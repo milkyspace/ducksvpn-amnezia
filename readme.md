@@ -72,6 +72,6 @@ sudo systemctl status ducksVpnTelegram
 
 MIT
 
-This repository is fork of https://github.com/wg-easy/wg-easy and https://github.com/svishnevskii/telegram_wireguard
+This repository uses the best practices of https://github.com/wg-easy/wg-easy and https://github.com/svishnevskii/telegram_wireguard
 
 **Free Software**
