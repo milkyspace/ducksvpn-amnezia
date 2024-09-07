@@ -30,7 +30,7 @@ function installTg() {
   python3 -m venv .venv
   source .venv/bin/activate
   pip install requests
-  pip install -r ./requirements.txt
+  pip install -r requirements.txt
   echo "[Unit]
         Description=Admin Bot for Wireguard
         After=multi-user.target
