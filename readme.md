@@ -38,7 +38,7 @@ apt-get install git -y
 git clone https://github.com/milkyspace/ducksvpn.git
 cd ducksvpn
 chmod u+x install.sh
-./install.sh "{$IP}"
+./install.sh "{$IP}" "{$PASSWORD_TO_ADMIN_PANEL}"
 ```
 
 Change it .env: Enter your data using the example
