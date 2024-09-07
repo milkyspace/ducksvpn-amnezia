@@ -3,7 +3,7 @@ function installAmnezia() {
   sudo usermod -aG docker $(whoami)
   docker pull vkolesnev/amneziavpn:latest
   docker run -d \
-    --name=amnezia-wg-easy \
+    --name=ducksvpn \
     -e LANG=en \
     -e WG_HOST=$1 \
     -e PASSWORD=$2 \
