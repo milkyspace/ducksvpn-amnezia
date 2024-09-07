@@ -1,4 +1,4 @@
-# DUCKS VPN
+# DUCKS VPN 🦆
 ## _The Best Telegram Vpn Service, Ever_
 
 [![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/vladimir_kvms)
