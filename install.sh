@@ -7,7 +7,7 @@ function installAmnezia() {
     -e LANG=en \
     -e WG_HOST=$1 \
     -e PASSWORD=$2 \
-    -v ~/.amnezia-wg-easy:/etc/wireguard \
+    -v ~/.vpnducks:/etc/wireguard \
     -p 51820:51820/udp \
     -p 51821:51821/tcp \
     --cap-add=NET_ADMIN \
