@@ -34,6 +34,7 @@ ip addr show
 ```
 
 ```sh
+apt install sudo -y
 apt-get install git -y
 git clone https://github.com/milkyspace/ducksvpn.git
 cd ducksvpn
