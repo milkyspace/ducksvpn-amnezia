@@ -45,7 +45,7 @@ chmod u+x install.sh
 Change it .env: Enter your data using the example
 ```sh
 mv .env.example .env
-nano .env // or vim .env
+nano .env # or vim .env
 ```
 
 Now you can open admin panel http://{$IP}:51821/
