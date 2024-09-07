@@ -48,9 +48,9 @@ mv .env.example .env
 nano .env # or vim .env
 ```
 
-ADMIN_TG_ID_1 is tg id of first admin (go to @getmyid_bot)
-ADMIN_TG_ID_2 is tg id of second admin  (go to @getmyid_bot)
-ONE_MONTH_COST is the price for 1 month
+ADMIN_TG_ID_1 is tg id of first admin (go to @getmyid_bot).
+ADMIN_TG_ID_2 is tg id of second admin  (go to @getmyid_bot).
+ONE_MONTH_COST is the price for 1 month.
 TRIAL_PERIOD is days of trial period
 PERC_1 is calc price for 1 month
 PERC_3 is calc price for 3 months
