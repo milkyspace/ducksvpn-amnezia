@@ -41,9 +41,9 @@ function installTg() {
         User=root
 
         [Install]
-        WantedBy=multi-user.target">"/etc/systemd/system/befutureAdmin.service"
+        WantedBy=multi-user.target">"/etc/systemd/system/ducksVpnTelegram.service"
   systemctl daemon-reload
-  sudo systemctl enable befutureAdmin.service
+  sudo systemctl enable ducksVpnTelegram.service
   mkdir data
   clear
   rm ./install.sh
