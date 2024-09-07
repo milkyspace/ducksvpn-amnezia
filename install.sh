@@ -27,7 +27,7 @@ function installTg() {
   apt-get install unzip
   apt-get install python3
   apt-get install python3-pip -y
-  pip install -r "$(pwd)/requirements.txt"
+  pip install -r ./requirements.txt
   echo "[Unit]
         Description=Admin Bot for Wireguard
         After=multi-user.target
@@ -47,7 +47,6 @@ function installTg() {
   mkdir data
   clear
   rm ./install.sh
-  rm ./requirements.txt
   echo "Installed TG"
   echo "Congratulations! Now you must configure the .env (copy .env.example to .env) configuration file at .env"
 }
