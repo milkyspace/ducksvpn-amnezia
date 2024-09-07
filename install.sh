@@ -49,7 +49,7 @@ function installTg() {
   rm ./install.sh
   rm ./requirements.txt
   echo "Installed TG"
-  echo "You must configure the .env (copy .env.example to .env) configuration file at ./amneziavpn-telegram-bot/.env"
+  echo "Congratulations! Now you must configure the .env (copy .env.example to .env) configuration file at .env"
 }
 
 installAmnezia
