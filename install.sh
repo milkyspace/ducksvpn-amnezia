@@ -8,6 +8,9 @@ function installServer() {
     -e LANG=en \
     -e WG_HOST=$1 \
     -e PASSWORD=$2 \
+    -e UI_TRAFFIC_STATS=true \
+    -e UI_CHART_TYPE=1 \
+    -e WG_MTU=1332 \
     -v ~/.vpnducks:/etc/wireguard \
     -p 51820:51820/udp \
     -p 51821:51821/tcp \
@@ -28,7 +31,7 @@ function installTg() {
   apt-get install unzip -y
   apt-get install python3 -y
   apt-get install pip -y
-  pip3 install requirements.txt --break-system-packages
+  pip3 install -r requirements.txt --break-system-packages
   echo "[Unit]
         Description=Admin Bot for Wireguard
         After=multi-user.target
