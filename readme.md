@@ -58,4 +58,4 @@ sudo systemctl status ducksVpnTelegram
 
 MIT
 
-**Free Software, Hell Yeah!**
+**Free Software**
