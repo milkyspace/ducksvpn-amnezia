@@ -1,4 +1,5 @@
 function installServer() {
+  apt-get install sudo
   curl -sSL https://get.docker.com | sh
   sudo usermod -aG docker $(whoami)
   docker pull vkolesnev/amneziavpn:latest
