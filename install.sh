@@ -26,7 +26,7 @@ function installServer() {
 function installTg() {
   apt-get install unzip -y
   apt-get install python3 -y
-  apt-get install pip3 -y
+  apt-get install pip -y
   pip3 install requirements.txt --break-system-packages
   echo "[Unit]
         Description=Admin Bot for Wireguard
