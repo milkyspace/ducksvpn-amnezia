@@ -24,7 +24,7 @@ And of course DUCKS VPN itself is open source with a [public repository][dill] o
 
 ## Installation
 
-DUCKS VPN requires Docker and Python3 to run.
+DUCKS VPN requires Docker and Python3 to run.\
 You must create a bot in telegram via https://t.me/BotFather and create a store in YooKassa https://yookassa.ru/ to receive subscription payments
 
 Install the dependencies and start the server.
@@ -48,16 +48,16 @@ mv .env.example .env
 nano .env # or vim .env
 ```
 
-ADMIN_TG_ID_1 is tg id of first admin (go to @getmyid_bot).
-ADMIN_TG_ID_2 is tg id of second admin  (go to @getmyid_bot).
-ONE_MONTH_COST is the price for 1 month.
-TRIAL_PERIOD is days of trial period
-PERC_1 is calc price for 1 month
-PERC_3 is calc price for 3 months
-PERC_6 is calc price for 6 months
-TG_TOKEN is telegram bot token
-TG_SHOP_TOKEN is yookassa token
-PASSWORD_TO_AMNEZIA is password to admin panel
+ADMIN_TG_ID_1 is tg id of first admin (go to @getmyid_bot)\
+ADMIN_TG_ID_2 is tg id of second admin  (go to @getmyid_bot)\
+ONE_MONTH_COST is the price for 1 month\
+TRIAL_PERIOD is days of trial period\
+PERC_1 is calc price for 1 month\
+PERC_3 is calc price for 3 months\
+PERC_6 is calc price for 6 months\
+TG_TOKEN is telegram bot token\
+TG_SHOP_TOKEN is yookassa token\
+PASSWORD_TO_AMNEZIA is password to admin panel\
 
 Now you can open admin panel http://{$IP}:51821/
 And start the telegram bot
