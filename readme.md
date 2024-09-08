@@ -5,10 +5,10 @@
 
 DucksVPN is a telegram bot with AmneziaVPN server for sales vpn subscribes.
 
-- 🌍 VPN works only for YouTube, Instagram and Twitter (we will add the necessary services upon your request)
-- 🔥 Now you don't need to disable VPN, all Russian services will work even with VPN enabled
+- 🌍 VPN works only for YouTube, Instagram and Twitter as default
+- 🔥 Now you don't need to disable VPN, all another services will work even with VPN enabled
 - 🚀 Unlimited speed, no ads, can be installed on a smart TV or router
-- ⚡️ 24/7 operational support will answer your questions and help you connect
+- ⚡️ Operational support fron telegram bot will answer your questions and help you connect
 
 ## Tech
 
