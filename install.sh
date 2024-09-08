@@ -22,6 +22,16 @@ function installServer() {
     --restart unless-stopped \
     vkolesnev/amneziavpn:latest
 
+  set firewall name WAN_LOCAL rule 30 action accept
+  set firewall name WAN_LOCAL rule 30 description 'Accept Wireguard VPN server connections'
+  set firewall name WAN_LOCAL rule 30 destination port 51820
+  set firewall name WAN_LOCAL rule 30 log disable
+  set firewall name WAN_LOCAL rule 30 protocol udp
+  set firewall name WAN_LOCAL rule 30 source address 0.0.0.0/0
+  set firewall name WAN_LOCAL rule 30 state established enable
+  set firewall name WAN_LOCAL rule 30 state new enable
+  set firewall name WAN_LOCAL rule 30 state related enable
+
   clear
   echo "Installed WG Amnezia DUCK VPN Server"
   echo "Admin panel of WG Amnezia DUCK VPN on http://$1:51821/"
