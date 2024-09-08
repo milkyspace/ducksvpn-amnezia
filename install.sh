@@ -23,8 +23,8 @@ function installServer() {
     vkolesnev/amneziavpn:latest
 
   clear
-  echo "Installed Amnezia"
-  echo "Admin panel of Amnezia on http://$1:51821/"
+  echo "Installed WG Amnezia DUCK VPN Server"
+  echo "Admin panel of WG Amnezia DUCK VPN on http://$1:51821/"
 }
 
 function installTg() {
@@ -33,7 +33,7 @@ function installTg() {
   apt-get install pip -y
   sudo pip3 install -r requirements.txt --break-system-packages
   echo "[Unit]
-        Description=Admin Bot for Wireguard
+        Description=Telegram bot for DUCK VPN
         After=multi-user.target
 
         [Service]
@@ -50,10 +50,9 @@ function installTg() {
   sudo systemctl enable ducksVpnTelegram.service
   mkdir data
   clear
-  rm ./install.sh
   echo "Installed TG"
   echo "Congratulations! Now you must configure the .env (copy .env.example to .env) configuration file at .env"
 }
 
-installServer
-installTg
+installServer $1 $2
+installTg $1 $2
