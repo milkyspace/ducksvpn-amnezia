@@ -388,7 +388,7 @@ async def Work_with_Message(m: types.Message):
             c.close()
             db.close()
             BotChecking = TeleBot(BOTAPIKEY)
-            timetoadd = 7 * 60 * 60 * 24
+            timetoadd = 2 * 60 * 60 * 24
             countAdded = 0
             db = sqlite3.connect(DBCONNECT)
             for i in log:
@@ -704,7 +704,7 @@ def checkTime():
                     BotChecking = TeleBot(BOTAPIKEY)
                     BotChecking.send_message(i['tgid'], texts_for_bot["alert_to_renew_sub"], parse_mode="HTML")
 
-                # Дарим бесплатную подписку на 2 дня если он висит 3 дня как неактивный и не ливнул
+                # Дарим бесплатную подписку на 2 дня, если он висит 3 дня как неактивный и не ушел
                 if remained_time <= 259200 and i['trial_continue'] == 0:
                     BotChecking = TeleBot(BOTAPIKEY)
                     timetoadd = 2 * 60 * 60 * 24
