@@ -68,6 +68,27 @@ class MyStates(StatesGroup):
 
     AdminNewUser = State()
 
+async def sendConfigAndInstruction(chatId):
+    user_dat = await User.GetInfo(chatId)
+    if user_dat.trial_subscription == False:
+        Butt_how_to = types.InlineKeyboardMarkup()
+        Butt_how_to.add(
+            types.InlineKeyboardButton(e.emojize("Подробнее как импортировать файл"),
+                                       url="https://docs.amnezia.org/ru/documentation/instructions/connect-via-config"))
+
+        clients = requests.get(f"{BASE_URL}/wireguard/client", headers={"password": f"{PASSWORD}"})
+        for client in clients.json():
+            if str(user_dat.tgid) == client.get('name', 0):
+                response = requests.get(f"{BASE_URL}/wireguard/client/{client.get('id', 0)}/configuration", headers={"Content-Type": "application/json", "password": f"{PASSWORD}"})
+                content_disposition = response.headers["Content-Disposition"]
+                filename = f"data/{content_disposition.split('filename=')[1]}"
+                with open(filename, "wb") as code:
+                    code.write(response.content)
+                configFull = open(filename, 'rb')
+                await bot.send_document(chat_id=chatId, caption=f"1. Скачайте файл настройки vpnducks_{str(user_dat.tgid)}.conf, прикрепленный выше.\n\n2. Установите приложение AmneziaVPN: <a href='https://apps.apple.com/us/app/amneziavpn/id1600529900'>iPhone</a>, <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>Android</a>, <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0_x64.exe'>Windows</a> или <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0.dmg'>Mac</a>\n\n3. Откройте приложение AmneziaVPN и импортируйте в него скачанный ранее файл настройки vpnducks_{str(user_dat.tgid)}.conf", parse_mode="HTML", reply_markup=Butt_how_to, document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
+    else:
+        await bot.send_message(chat_id=chatId, text="Сначала нужно купить подписку!")
+
 @bot.message_handler(commands=['start'])
 async def start(message: types.Message):
     if message.chat.type == "private":
@@ -88,6 +109,7 @@ async def start(message: types.Message):
         await bot.send_message(message.chat.id, e.emojize(texts_for_bot["hello_message"]), parse_mode="HTML",
                                reply_markup=await main_buttons(user_dat))
         await bot.send_message(message.chat.id, e.emojize(texts_for_bot["trial_message"]), parse_mode="HTML")
+        await sendConfigAndInstruction(message.chat.id)
 
 @bot.message_handler(state=MyStates.editUser, content_types=["text"])
 async def Work_with_Message(m: types.Message):
@@ -502,25 +524,7 @@ async def Work_with_Message(m: types.Message):
         return
 
     if e.demojize(m.text) == "Как подключить :gear:":
-        if user_dat.trial_subscription == False:
-            Butt_how_to = types.InlineKeyboardMarkup()
-            Butt_how_to.add(
-                types.InlineKeyboardButton(e.emojize("Подробнее как импортировать файл"),
-                                           url="https://docs.amnezia.org/ru/documentation/instructions/connect-via-config"))
-
-            clients = requests.get(f"{BASE_URL}/wireguard/client", headers={"password": f"{PASSWORD}"})
-            for client in clients.json():
-                if str(user_dat.tgid) == client.get('name', 0):
-                    response = requests.get(f"{BASE_URL}/wireguard/client/{client.get('id', 0)}/configuration", headers={"Content-Type": "application/json", "password": f"{PASSWORD}"})
-                    content_disposition = response.headers["Content-Disposition"]
-                    filename = f"data/{content_disposition.split('filename=')[1]}"
-                    with open(filename, "wb") as code:
-                        code.write(response.content)
-                    configFull = open(filename, 'rb')
-                    await bot.send_document(chat_id=m.chat.id, caption=f"1. Скачайте файл настройки vpnducks_{str(user_dat.tgid)}.conf, прикрепленный выше.\n\n2. Установите приложение AmneziaVPN: <a href='https://apps.apple.com/us/app/amneziavpn/id1600529900'>iPhone</a>, <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>Android</a>, <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0_x64.exe'>Windows</a> или <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0.dmg'>Mac</a>\n\n3. Откройте приложение AmneziaVPN и импортируйте в него скачанный ранее файл настройки vpnducks_{str(user_dat.tgid)}.conf", parse_mode="HTML", reply_markup=Butt_how_to, document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
-        else:
-            await bot.send_message(chat_id=m.chat.id, text="Сначала нужно купить подписку!")
-        return
+        await sendConfigAndInstruction(m.chat.id)
     else:
         if "Подписка закончилась:" in m.text:
             return
