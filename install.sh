@@ -58,6 +58,8 @@ function installTg() {
         WantedBy=multi-user.target">"/etc/systemd/system/ducksVpnTelegram.service"
   systemctl daemon-reload
   sudo systemctl enable ducksVpnTelegram.service
+  sudo apt-get install sqlite3 -y
+  sqlite3 data.sqlite < schema_db.sql
   mkdir data
   clear
   echo "Installed TG"
