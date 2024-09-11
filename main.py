@@ -85,7 +85,7 @@ async def sendConfigAndInstruction(chatId):
                 with open(filename, "wb") as code:
                     code.write(response.content)
                 configFull = open(filename, 'rb')
-                await bot.send_document(chat_id=chatId, caption=f"1. Скачайте файл настройки vpnducks_{str(user_dat.tgid)}.conf, прикрепленный выше.\n\n2. Установите приложение AmneziaVPN: <a href='https://apps.apple.com/us/app/amneziavpn/id1600529900'>iPhone</a>, <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>Android</a>, <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0_x64.exe'>Windows</a> или <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0.dmg'>Mac</a>\n\n3. Откройте приложение AmneziaVPN и импортируйте в него скачанный ранее файл настройки vpnducks_{str(user_dat.tgid)}.conf", parse_mode="HTML", reply_markup=Butt_how_to, document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
+                await bot.send_document(chat_id=chatId, caption=f"1. Сохраните файл настройки vpnducks_{str(user_dat.tgid)}.conf, прикрепленный выше.\n\n2. Установите приложение AmneziaVPN: <a href='https://apps.apple.com/us/app/amneziavpn/id1600529900'>iPhone</a>, <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>Android</a>, <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0_x64.exe'>Windows</a> или <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0.dmg'>Mac</a>\n\n3. Откройте приложение AmneziaVPN и импортируйте в него скачанный ранее файл настройки vpnducks_{str(user_dat.tgid)}.conf", parse_mode="HTML", reply_markup=Butt_how_to, document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
     else:
         await bot.send_message(chat_id=chatId, text="Сначала нужно купить подписку!")
 
@@ -94,10 +94,6 @@ async def start(message: types.Message):
     if message.chat.type == "private":
         await bot.delete_state(message.from_user.id)
         user_dat = await User.GetInfo(message.chat.id)
-#         if user_dat.registered:
-#             await bot.send_message(message.chat.id, "Доступный рабочий быстрый ВПН\n\n<b>ВАЖНО</b>\n\nТолько YouTube, Instagram и Twitter\n\nБольше не придется отключать vpn, российские сайты и сервисы откроются без vpn", parse_mode="HTML",
-#                                    reply_markup=await main_buttons(user_dat))
-#         else:
         try:
             username = "@" + str(message.from_user.username)
         except:
@@ -106,8 +102,6 @@ async def start(message: types.Message):
 
         await user_dat.Adduser(username, message.from_user.full_name)
         user_dat = await User.GetInfo(message.chat.id)
-        await bot.send_message(message.chat.id, e.emojize(texts_for_bot["hello_message"]), parse_mode="HTML",
-                               reply_markup=await main_buttons(user_dat))
         await bot.send_message(message.chat.id, e.emojize(texts_for_bot["trial_message"]), parse_mode="HTML")
         await sendConfigAndInstruction(message.chat.id)
 
@@ -363,6 +357,11 @@ async def Work_with_Message(m: types.Message):
                                parse_mode="HTML", reply_markup=await main_buttons(user_dat))
         return
     await user_dat.CheckNewNickname(m)
+
+    if e.demojize(m.text) == "Почему стоит выбрать нас? :smiling_face_with_sunglasses:":
+        await bot.send_message(m.chat.id, e.emojize(texts_for_bot["hello_message"]), parse_mode="HTML",
+                                       reply_markup=await main_buttons(user_dat))
+        return
 
     if m.from_user.id in CONFIG["admin_tg_id"]:
         if e.demojize(m.text) == "Админ-панель :smiling_face_with_sunglasses:":
