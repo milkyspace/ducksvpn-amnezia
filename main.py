@@ -68,6 +68,21 @@ class MyStates(StatesGroup):
 
     AdminNewUser = State()
 
+async def sendPayMessage(chatId):
+    Butt_payment = types.InlineKeyboardMarkup()
+    Butt_payment.add(
+        types.InlineKeyboardButton(e.emojize(f"1 месяц: {str(round(CONFIG['perc_1'] * CONFIG['one_month_cost']))} руб."),
+                                   callback_data="BuyMonth:1"))
+    Butt_payment.add(
+        types.InlineKeyboardButton(e.emojize(f"3 месяца: {str(round(CONFIG['perc_3'] * CONFIG['one_month_cost']))} руб. (-{round(((3 - CONFIG['perc_3']) / 3) * 100)}%)"),
+                                   callback_data="BuyMonth:3"))
+    Butt_payment.add(
+        types.InlineKeyboardButton(e.emojize(f"6 месяцев: {str(round(CONFIG['perc_6'] * CONFIG['one_month_cost']))} руб. (-{round(((6 - CONFIG['perc_6']) / 6) * 100)}%)"),
+                                   callback_data="BuyMonth:6"))
+    await bot.send_message(chatId,
+                           "<b>Оплатить можно с помощью Банковской карты!</b>\n\nВыберите период, на который хотите приобрести подписку:",
+                           reply_markup=Butt_payment, parse_mode="HTML")
+
 async def sendConfigAndInstruction(chatId):
     user_dat = await User.GetInfo(chatId)
     if user_dat.trial_subscription == False:
@@ -87,7 +102,8 @@ async def sendConfigAndInstruction(chatId):
                 configFull = open(filename, 'rb')
                 await bot.send_document(chat_id=chatId, caption=f"1. Сохраните файл настройки vpnducks_{str(user_dat.tgid)}.conf, прикрепленный выше.\n\n2. Установите приложение AmneziaVPN: <a href='https://apps.apple.com/us/app/amneziavpn/id1600529900'>iPhone</a>, <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>Android</a>, <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0_x64.exe'>Windows</a> или <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0.dmg'>Mac</a>\n\n3. Откройте приложение AmneziaVPN и импортируйте в него скачанный ранее файл настройки vpnducks_{str(user_dat.tgid)}.conf", parse_mode="HTML", reply_markup=Butt_how_to, document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
     else:
-        await bot.send_message(chat_id=chatId, text="Сначала нужно купить подписку!")
+        await bot.send_message(chat_id=chatId, text="Для этого необходимо оплатить подписку")
+        await sendPayMessage(chatId)
 
 @bot.message_handler(commands=['start'])
 async def start(message: types.Message):
@@ -102,7 +118,7 @@ async def start(message: types.Message):
 
         await user_dat.Adduser(username, message.from_user.full_name)
         user_dat = await User.GetInfo(message.chat.id)
-        await bot.send_message(message.chat.id, e.emojize(texts_for_bot["trial_message"]), parse_mode="HTML")
+        await bot.send_message(message.chat.id, e.emojize(texts_for_bot["trial_message"]), parse_mode="HTML", reply_markup=await main_buttons(user_dat))
         await sendConfigAndInstruction(message.chat.id)
 
 @bot.message_handler(state=MyStates.editUser, content_types=["text"])
@@ -507,25 +523,14 @@ async def Work_with_Message(m: types.Message):
     if e.demojize(m.text) == "Продлить подписку :money_bag:":
         payment_info = await user_dat.PaymentInfo()
         if True:
-            Butt_payment = types.InlineKeyboardMarkup()
-            Butt_payment.add(
-                types.InlineKeyboardButton(e.emojize(f"1 месяц: {str(round(CONFIG['perc_1'] * CONFIG['one_month_cost']))} руб."),
-                                           callback_data="BuyMonth:1"))
-            Butt_payment.add(
-                types.InlineKeyboardButton(e.emojize(f"3 месяца: {str(round(CONFIG['perc_3'] * CONFIG['one_month_cost']))} руб. (-{round(((3 - CONFIG['perc_3']) / 3) * 100)}%)"),
-                                           callback_data="BuyMonth:3"))
-            Butt_payment.add(
-                types.InlineKeyboardButton(e.emojize(f"6 месяцев: {str(round(CONFIG['perc_6'] * CONFIG['one_month_cost']))} руб. (-{round(((6 - CONFIG['perc_6']) / 6) * 100)}%)"),
-                                           callback_data="BuyMonth:6"))
-            await bot.send_message(m.chat.id,
-                                   "<b>Оплатить можно с помощью Банковской карты!</b>\n\nВыберите период, на который хотите приобрести подписку:",
-                                   reply_markup=Butt_payment, parse_mode="HTML")
+            await sendPayMessage(m.chat.id)
         return
 
     if e.demojize(m.text) == "Как подключить :gear:":
         await sendConfigAndInstruction(m.chat.id)
     else:
         if "Подписка закончилась:" in m.text:
+            await sendPayMessage(m.chat.id)
             return
         if "Подписка активна до:" in m.text:
             return
@@ -727,6 +732,7 @@ def checkTime():
                     BotChecking.send_message(i['tgid'],
                                              e.emojize(texts_for_bot["alert_to_extend_sub"]),
                                              reply_markup=Butt_main, parse_mode="HTML")
+                    sendConfigAndInstruction(i['tgid'])
 
         except Exception as err:
             print(err)
