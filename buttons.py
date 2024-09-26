@@ -18,8 +18,8 @@ async def main_buttons(user: User):
 
         Butt_main.add(types.KeyboardButton(e.emojize(f"Продлить подписку :money_bag:")),types.KeyboardButton(e.emojize(f"Как подключить :gear:")))
 
-        if user.trial_subscription == True:
-            Butt_main.add(types.KeyboardButton(e.emojize(f"Почему стоит выбрать нас? :smiling_face_with_sunglasses:")))
+#         if user.trial_subscription == True:
+        Butt_main.add(types.KeyboardButton(e.emojize(f"Почему стоит выбрать нас? :smiling_face_with_sunglasses:")))
 
         if user.tgid in CONFIG["admin_tg_id"]:
             Butt_main.add(types.KeyboardButton(e.emojize(f"Админ-панель :smiling_face_with_sunglasses:")))

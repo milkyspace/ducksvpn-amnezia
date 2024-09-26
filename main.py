@@ -89,7 +89,7 @@ async def sendConfigAndInstruction(chatId):
         Butt_how_to = types.InlineKeyboardMarkup()
         Butt_how_to.add(
             types.InlineKeyboardButton(e.emojize("Подробнее как импортировать файл"),
-                                       url="https://docs.amnezia.org/ru/documentation/instructions/connect-via-config"))
+                                       callback_data="Instruction:Query"))
 
         clients = requests.get(f"{BASE_URL}/wireguard/client", headers={"password": f"{PASSWORD}"})
         for client in clients.json():
@@ -102,8 +102,22 @@ async def sendConfigAndInstruction(chatId):
                 configFull = open(filename, 'rb')
                 await bot.send_document(chat_id=chatId, caption=f"1. Сохраните файл настройки vpnducks_{str(user_dat.tgid)}.conf, прикрепленный выше.\n\n2. Установите приложение AmneziaVPN: <a href='https://apps.apple.com/us/app/amneziavpn/id1600529900'>iPhone</a>, <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>Android</a>, <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0_x64.exe'>Windows</a> или <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0.dmg'>Mac</a>\n\n3. Откройте приложение AmneziaVPN и импортируйте в него скачанный ранее файл настройки vpnducks_{str(user_dat.tgid)}.conf", parse_mode="HTML", reply_markup=Butt_how_to, document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
     else:
-        await bot.send_message(chat_id=chatId, text="Для этого необходимо оплатить подписку")
+        await bot.send_message(chat_id=chatId, text="Для этого необходимо оплатить подписку", reply_markup=await main_buttons(user_dat))
         await sendPayMessage(chatId)
+
+@bot.callback_query_handler(func=lambda c: 'Instruction:Query' in c.data)
+async def getInstruction(call: types.CallbackQuery):
+    user_dat = await User.GetInfo(call.from_user.id)
+    buttonsInstruction = types.InlineKeyboardMarkup(keyboard = None, row_width = 2)
+    buttonsInstruction.add(
+        types.InlineKeyboardButton(e.emojize("iPhone"), url="https://telegra.ph/Podklyuchenie-VPN-DUCKS-na-iPhone-09-16"),
+        types.InlineKeyboardButton(e.emojize("Android"), url="https://docs.amnezia.org/ru/documentation/instructions/connect-via-config"),
+        types.InlineKeyboardButton(e.emojize("Windows"), url="https://docs.amnezia.org/ru/documentation/instructions/connect-via-config"),
+        types.InlineKeyboardButton(e.emojize("MacOS"), url="https://docs.amnezia.org/ru/documentation/instructions/connect-via-config"),
+    )
+    await bot.send_message(call.from_user.id, "Выберите свое устройство", reply_markup=buttonsInstruction)
+    await bot.answer_callback_query(call.id)
+    return
 
 @bot.message_handler(commands=['start'])
 async def start(message: types.Message):
@@ -113,12 +127,14 @@ async def start(message: types.Message):
         try:
             username = "@" + str(message.from_user.username)
         except:
-
             username = str(message.from_user.id)
 
         await user_dat.Adduser(username, message.from_user.full_name)
         user_dat = await User.GetInfo(message.chat.id)
-        await bot.send_message(message.chat.id, e.emojize(texts_for_bot["trial_message"]), parse_mode="HTML", reply_markup=await main_buttons(user_dat))
+
+        if user_dat.trial_subscription == False:
+            await bot.send_message(message.chat.id, e.emojize(texts_for_bot["trial_message"]), parse_mode="HTML", reply_markup=await main_buttons(user_dat))
+
         await sendConfigAndInstruction(message.chat.id)
 
 @bot.message_handler(state=MyStates.editUser, content_types=["text"])
