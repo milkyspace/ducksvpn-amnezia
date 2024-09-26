@@ -111,7 +111,7 @@ async def getInstruction(call: types.CallbackQuery):
     buttonsInstruction = types.InlineKeyboardMarkup(keyboard = None, row_width = 2)
     buttonsInstruction.add(
         types.InlineKeyboardButton(e.emojize("iPhone"), url="https://telegra.ph/Podklyuchenie-VPN-DUCKS-na-iPhone-09-16"),
-        types.InlineKeyboardButton(e.emojize("Android"), url="https://telegra.ph/Podklyuchenie-VPN-DUCKS-na-Android-09-26-2git "),
+        types.InlineKeyboardButton(e.emojize("Android"), url="https://telegra.ph/Podklyuchenie-VPN-DUCKS-na-Android-09-26-2"),
         types.InlineKeyboardButton(e.emojize("Windows"), url="https://docs.amnezia.org/ru/documentation/instructions/connect-via-config"),
         types.InlineKeyboardButton(e.emojize("MacOS"), url="https://docs.amnezia.org/ru/documentation/instructions/connect-via-config"),
     )
