@@ -514,12 +514,14 @@ async def Work_with_Message(m: types.Message):
                     if len(readymes) + len(f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>) :check_mark_button:\n") > 4090:
                         readymass.append(readymes)
                         readymes = ""
-                    readymes += f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>) :check_mark_button:\n"
+#                     readymes += f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>) :check_mark_button:\n"
+                    readymes += f"{i['username']}|<code>{str(i['tgid'])}</code> :check_mark_button:\n"
                 else:
                     if len(readymes) + len(f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>)\n") > 4090:
                         readymass.append(readymes)
                         readymes = ""
-                    readymes += f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>)\n"
+#                     readymes += f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>)\n"
+                    readymes += f"{i['username']}|<code>{str(i['tgid'])}</code>\n"
             readymass.append(readymes)
             for i in readymass:
                 await bot.send_message(m.from_user.id, e.emojize(i), reply_markup=await buttons.admin_buttons(),
