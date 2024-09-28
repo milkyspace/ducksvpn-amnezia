@@ -61,7 +61,7 @@ nano .env # or vim .env
 **TG_SHOP_TOKEN** is yookassa token\
 **BASE_URL** is url for wg api (default http://0.0.0.0:51821/api)\
 **PASSWORD_TO_AMNEZIA** is password to admin panel\
-**BOT_NAME** is name of telegram bot\
+**BOT_NAME** is name of telegram bot
 
 Now you can open admin panel http://{$IP}:51821/
 And start the telegram bot
