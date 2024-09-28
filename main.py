@@ -511,15 +511,15 @@ async def Work_with_Message(m: types.Message):
             readymes = ""
             for i in allusers:
                 if int(i['subscription']) > int(time.time()):
-                    if len(readymes) + len(f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>) :check_mark_button:\n") > 4090:
+                    if len(readymes) + len(f"{i['fullname']} ({i['username']}|{str(i['tgid'])}) :check_mark_button:\n") > 4090:
                         readymass.append(readymes)
                         readymes = ""
-                    readymes += f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>) :check_mark_button:\n"
+                    readymes += f"{i['fullname']} ({i['username']}|{str(i['tgid'])}) :check_mark_button:\n"
                 else:
-                    if len(readymes) + len(f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>)\n") > 4090:
+                    if len(readymes) + len(f"{i['fullname']} ({i['username']}|{str(i['tgid'])})\n") > 4090:
                         readymass.append(readymes)
                         readymes = ""
-                    readymes += f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>)\n"
+                    readymes += f"{i['fullname']} ({i['username']}|{str(i['tgid'])})\n"
             readymass.append(readymes)
             for i in readymass:
                 await bot.send_message(m.from_user.id, e.emojize(i), reply_markup=await buttons.admin_buttons())
@@ -536,13 +536,13 @@ async def Work_with_Message(m: types.Message):
             for i in allusers:
                 if int(i['subscription']) > int(time.time()):
                     if len(readymes) + len(
-                            f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>) - {datetime.utcfromtimestamp(int(i['subscription']) + CONFIG['UTC_time'] * 3600).strftime('%d.%m.%Y %H:%M')}\n\n") > 4090:
+                            f"{i['fullname']} ({i['username']}|{str(i['tgid'])}) - {datetime.utcfromtimestamp(int(i['subscription']) + CONFIG['UTC_time'] * 3600).strftime('%d.%m.%Y %H:%M')}\n\n") > 4090:
                         readymass.append(readymes)
                         readymes = ""
-                    readymes += f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>) - {datetime.utcfromtimestamp(int(i['subscription']) + CONFIG['UTC_time'] * 3600).strftime('%d.%m.%Y %H:%M')}\n\n"
+                    readymes += f"{i['fullname']} ({i['username']}|{str(i['tgid'])}) - {datetime.utcfromtimestamp(int(i['subscription']) + CONFIG['UTC_time'] * 3600).strftime('%d.%m.%Y %H:%M')}\n\n"
             readymass.append(readymes)
             for i in readymass:
-                await bot.send_message(m.from_user.id, e.emojize(i), parse_mode="HTML")
+                await bot.send_message(m.from_user.id, e.emojize(i))
             return
 
         if e.demojize(m.text) == "Редактировать пользователя по id":
