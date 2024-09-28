@@ -6,7 +6,10 @@ from datetime import datetime
 
 CONFIG={}
 
-async def main_buttons(user: User):
+async def main_buttons(user: User, wasUpdate = None):
+    if wasUpdate:
+        user = await User.GetInfo(user.tgid)
+
     Butt_main = types.ReplyKeyboardMarkup(resize_keyboard=True)
     if user.subscription != "none":
         dateto = datetime.utcfromtimestamp(int(user.subscription)+CONFIG["UTC_time"]*3600).strftime('%d.%m.%Y %H:%M')
@@ -18,8 +21,7 @@ async def main_buttons(user: User):
 
         Butt_main.add(types.KeyboardButton(e.emojize(f"Продлить подписку :money_bag:")),types.KeyboardButton(e.emojize(f"Как подключить :gear:")))
 
-        if user.trial_subscription == True:
-            Butt_main.add(types.KeyboardButton(e.emojize(f"Почему стоит выбрать нас? :smiling_face_with_sunglasses:")))
+        Butt_main.add(types.KeyboardButton(e.emojize(f"Почему стоит выбрать нас? :smiling_face_with_sunglasses:")), types.KeyboardButton(e.emojize(f"Рефералы :busts_in_silhouette:")))
 
         if user.tgid in CONFIG["admin_tg_id"]:
             Butt_main.add(types.KeyboardButton(e.emojize(f"Админ-панель :smiling_face_with_sunglasses:")))
@@ -30,8 +32,7 @@ async def admin_buttons():
     Butt_admin.add(types.KeyboardButton(e.emojize(f"Вывести пользователей :bust_in_silhouette:")))
     Butt_admin.add(types.KeyboardButton(e.emojize(f"Редактировать пользователя по id")))
     Butt_admin.add(types.KeyboardButton(e.emojize(f"Отправить пользователю сообщение :pencil:")))
-    Butt_admin.add(types.KeyboardButton(e.emojize(f"Статичные пользователи")))
-    Butt_admin.add(types.KeyboardButton(e.emojize(f"Продлить пробный период")))
+    Butt_admin.add(types.KeyboardButton(e.emojize(f"Протестировать оплату :smiling_face_with_sunglasses:")))
     Butt_admin.add(types.KeyboardButton(e.emojize("Главное меню :right_arrow_curving_left:")))
     return Butt_admin
 
@@ -45,7 +46,6 @@ async def admin_buttons_output_users():
 async def admin_buttons_static_users():
     Butt_admin = types.ReplyKeyboardMarkup(resize_keyboard=True)
     Butt_admin.add(types.KeyboardButton(e.emojize(f"Добавить пользователя :plus:")))
-    Butt_admin.add(types.KeyboardButton(e.emojize(f"Вывести статичных пользователей")))
     Butt_admin.add(types.KeyboardButton(e.emojize("Назад :right_arrow_curving_left:")))
     return Butt_admin
 
