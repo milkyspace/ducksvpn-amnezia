@@ -625,22 +625,22 @@ async def Referrer(call: types.CallbackQuery):
 async def Buy_month(call: types.CallbackQuery):
     user_dat = await User.GetInfo(call.from_user.id)
     payment_info = await user_dat.PaymentInfo()
-    if payment_info is None:
-        Month_count = int(str(call.data).split(":")[1])
-        await bot.delete_message(call.message.chat.id, call.message.id)
-        if(Month_count == 1):
-            count = CONFIG['perc_1']
-        if(Month_count == 3):
-            count = CONFIG['perc_3']
-        if(Month_count == 6):
-            count = CONFIG['perc_6']
-        if(Month_count == 12):
-            count = CONFIG['perc_12']
 
-        bill = await bot.send_invoice(call.message.chat.id, f"Оплата VPN", f"VPN на {str(Month_count)} мес.", call.data,
-                                        currency="RUB",prices=[
-                    types.LabeledPrice(f"VPN на {str(Month_count)} мес.", getCostBySale(Month_count))],
-                                        provider_token=CONFIG["tg_shop_token"])
+    Month_count = int(str(call.data).split(":")[1])
+    await bot.delete_message(call.message.chat.id, call.message.id)
+    if(Month_count == 1):
+        count = CONFIG['perc_1']
+    if(Month_count == 3):
+        count = CONFIG['perc_3']
+    if(Month_count == 6):
+        count = CONFIG['perc_6']
+    if(Month_count == 12):
+        count = CONFIG['perc_12']
+
+    bill = await bot.send_invoice(call.message.chat.id, f"Оплата VPN", f"VPN на {str(Month_count)} мес.", call.data,
+                                    currency="RUB",prices=[
+                types.LabeledPrice(f"VPN на {str(Month_count)} мес.", getCostBySale(Month_count))],
+                                    provider_token=CONFIG["tg_shop_token"])
 
     await bot.answer_callback_query(call.id)
 
