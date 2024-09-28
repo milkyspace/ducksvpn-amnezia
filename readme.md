@@ -18,6 +18,7 @@ DucksVPN uses technical solutions:
 - Python
 - AmneziaVPN
 - WireGuardVPN
+- WireGuard Easy
 - Docker
 
 And of course DUCKS VPN itself is open source with a public repository on GitHub.
