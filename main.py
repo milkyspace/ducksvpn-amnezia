@@ -411,6 +411,11 @@ async def Work_with_Message(m: types.Message):
 
 @bot.message_handler(state=MyStates.sendMessageToAllInactiveUser, content_types=["text"])
 async def Work_with_Message(m: types.Message):
+    if e.demojize(m.text) == "Назад :right_arrow_curving_left:":
+        await bot.delete_state(m.from_user.id)
+        await bot.send_message(m.from_user.id, "Вернул вас назад!", reply_markup=await buttons.admin_buttons())
+        return
+
     db = sqlite3.connect(DBCONNECT)
     db.row_factory = sqlite3.Row
     c = db.execute(f"SELECT * FROM userss where banned=true")
@@ -590,7 +595,7 @@ async def Work_with_Message(m: types.Message):
 
         if e.demojize(m.text) == "Отправить сообщение всем неактивным пользователям :pencil:":
             await bot.set_state(m.from_user.id, MyStates.sendMessageToAllInactiveUser)
-            await bot.send_message(m.from_user.id, "Введите сообщение:", reply_markup=types.ReplyKeyboardRemove())
+            await bot.send_message(m.from_user.id, "Введите сообщение:", reply_markup=await buttons.admin_buttons_back())
             return
 
         if e.demojize(m.text) == "Добавить пользователя :plus:":
