@@ -862,7 +862,6 @@ def checkTime():
                     BotChecking.send_message(i['tgid'],
                                              e.emojize(texts_for_bot["alert_to_extend_sub"]),
                                              reply_markup=Butt_main, parse_mode="HTML")
-                    sendConfig(i['tgid'])
 
         except Exception as err:
             print(err)
