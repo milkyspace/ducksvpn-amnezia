@@ -20,7 +20,7 @@ DucksVPN uses technical solutions:
 - WireGuardVPN
 - Docker
 
-And of course DUCKS VPN itself is open source with a [public repository][dill] on GitHub.
+And of course DUCKS VPN itself is open source with a public repository on GitHub.
 
 ## Installation
 
