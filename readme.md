@@ -52,12 +52,16 @@ nano .env # or vim .env
 **ADMIN_TG_ID_2** is tg id of second admin  (go to @getmyid_bot)\
 **ONE_MONTH_COST** is the price for 1 month\
 **TRIAL_PERIOD** is days of trial period\
+**COUNT_FREE_FROM_REFERRER** is count of months for referrer present
 **PERC_1** is calc price for 1 month\
 **PERC_3** is calc price for 3 months\
 **PERC_6** is calc price for 6 months\
+**PERC_12** is calc price for 12 months\
 **TG_TOKEN** is telegram bot token\
 **TG_SHOP_TOKEN** is yookassa token\
+**BASE_URL** is url for wg api (default http://0.0.0.0:51821/api)
 **PASSWORD_TO_AMNEZIA** is password to admin panel
+**BOT_NAME** is name of telegram bot
 
 Now you can open admin panel http://{$IP}:51821/
 And start the telegram bot
