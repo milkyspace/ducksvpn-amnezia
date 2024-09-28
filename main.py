@@ -71,6 +71,14 @@ class MyStates(StatesGroup):
 
     AdminNewUser = State()
 
+async def getTrialButtons():
+    trialButtons = types.InlineKeyboardMarkup(row_width = 1)
+    trialButtons.add(
+        types.InlineKeyboardButton(e.emojize("📱iOS (iPhone, iPad)"), callback_data="Init:iPhone"),
+        types.InlineKeyboardButton(e.emojize("📱Android"), callback_data="Init:Android"),
+    )
+    return trialButtons
+
 async def sendPayMessage(chatId):
     Butt_payment = types.InlineKeyboardMarkup()
     Butt_payment.add(
@@ -89,7 +97,7 @@ async def sendPayMessage(chatId):
                            "<b>Оплатить можно с помощью Банковской карты!</b>\n\nВыберите период, на который хотите приобрести подписку:",
                            reply_markup=Butt_payment, parse_mode="HTML")
 
-async def sendConfigAndInstruction(chatId, showButtonsPanel=False):
+async def sendConfig(chatId):
     user_dat = await User.GetInfo(chatId)
     if user_dat.trial_subscription == False:
         Butt_how_to = types.InlineKeyboardMarkup()
@@ -98,21 +106,30 @@ async def sendConfigAndInstruction(chatId, showButtonsPanel=False):
                                        callback_data="Instruction:Query"))
 
         clients = requests.get(f"{BASE_URL}/wireguard/client", headers={"password": f"{PASSWORD}"})
-        for client in clients.json():
-            if str(user_dat.tgid) == client.get('name', 0):
-                response = requests.get(f"{BASE_URL}/wireguard/client/{client.get('id', 0)}/configuration", headers={"Content-Type": "application/json", "password": f"{PASSWORD}"})
-                content_disposition = response.headers["Content-Disposition"]
-                filename = f"data/{content_disposition.split('filename=')[1]}"
-                with open(filename, "wb") as code:
-                    code.write(response.content)
-                configFull = open(filename, 'rb')
-                if showButtonsPanel:
-                    await bot.send_document(chat_id=chatId, caption=f"1. Сохраните файл настройки vpnducks_{str(user_dat.tgid)}.conf, прикрепленный выше.\n\n2. Установите приложение AmneziaVPN: <a href='https://apps.apple.com/us/app/amneziavpn/id1600529900'>iPhone</a>, <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>Android</a>, <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0_x64.exe'>Windows</a> или <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0.dmg'>Mac</a>\n\n3. Откройте приложение AmneziaVPN и импортируйте в него скачанный ранее файл настройки vpnducks_{str(user_dat.tgid)}.conf", parse_mode="HTML", reply_markup=Butt_how_to, document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
-                else:
-                    await bot.send_document(chat_id=chatId, caption=f"1. Сохраните файл настройки vpnducks_{str(user_dat.tgid)}.conf, прикрепленный выше.\n\n2. Установите приложение AmneziaVPN: <a href='https://apps.apple.com/us/app/amneziavpn/id1600529900'>iPhone</a>, <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>Android</a>, <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0_x64.exe'>Windows</a> или <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0.dmg'>Mac</a>\n\n3. Откройте приложение AmneziaVPN и импортируйте в него скачанный ранее файл настройки vpnducks_{str(user_dat.tgid)}.conf", parse_mode="HTML", document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
+        trialButtons = await getTrialButtons()
+        await bot.send_message(chat_id=chatId, text=f"Пожалуйста, выберите тип телефона или планшета, для которого нужна инструкция для подключения:", parse_mode="HTML", reply_markup=trialButtons)
     else:
         await bot.send_message(chat_id=chatId, text="Для этого необходимо оплатить подписку", reply_markup=await main_buttons(user_dat))
         await sendPayMessage(chatId)
+
+async def sendConfigAndInstructions(chatId, device='iPhone'):
+    user_dat = await User.GetInfo(chatId)
+    clients = requests.get(f"{BASE_URL}/wireguard/client", headers={"password": f"{PASSWORD}"})
+    for client in clients.json():
+        if str(user_dat.tgid) == client.get('name', 0):
+            response = requests.get(f"{BASE_URL}/wireguard/client/{client.get('id', 0)}/configuration", headers={"Content-Type": "application/json", "password": f"{PASSWORD}"})
+            content_disposition = response.headers["Content-Disposition"]
+            filename = f"data/{content_disposition.split('filename=')[1]}"
+            with open(filename, "wb") as code:
+                code.write(response.content)
+            configFull = open(filename, 'rb')
+
+            instructionIPhone = f"<b>Подключение VPN DUCKS на iOS</b>\n\r\n\r1. Установите приложение <a href='https://apps.apple.com/ru/app/amneziavpn/id1600529900'>AmneziaVPN для iOS из AppStore</a>\n\r2. Откройте прикрепленный выше файл конфигурации vpnducks_{str(user_dat.tgid)}.conf\n\r3. Нажмите на иконку поделиться в левом нижнем углу\n\r4. Найдите AmneziaVPN среди предложенных приложений и кликните по нему\n\r5. Откроется приложение AmneziaVPN и спросит о добавлении конфигурации, согласитесь на добавление конфигурации\n\r6. Нажмите на большую круглую кнопку подключиться на главном экране приложения. Готово\n\r\n\rЧто-то не получилось? Напишите нам @vpnducks_support"
+            instructionAndroid = f"<b>Подключение VPN DUCKS на Android</b>\n\r\n\r1. Установите приложение <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>AmneziaVPN для Android из Google Play</a>\n\r2. Откройте прикрепленный выше файл конфигурации vpnducks_{str(user_dat.tgid)}.conf с помощью приложения AmneziaVPN\n\r3. Откроется приложение AmneziaVPN, нажмите на кнопку подключиться\n\r4. Нажмите на большую круглую кнопку подключиться на главном экране приложения и разрешите смартфону установить VPN соединение. Готово\n\r\n\rЧто-то не получилось? Напишите нам @vpnducks_support"
+            if(device == "iPhone"):
+                await bot.send_document(chat_id=user_dat.tgid, caption=e.emojize(instructionIPhone), parse_mode="HTML", reply_markup=await main_buttons(user_dat, True), document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
+            if(device == "Android"):
+                await bot.send_document(chat_id=user_dat.tgid, caption=e.emojize(instructionAndroid), parse_mode="HTML", reply_markup=await main_buttons(user_dat, True), document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
 
 async def addTrialForReferrerByUserId(userId):
     user_dat = await User.GetInfo(userId)
@@ -148,7 +165,7 @@ async def start(message: types.Message):
         user_dat = await User.GetInfo(message.chat.id)
 
         if user_dat.registered:
-            await sendConfigAndInstruction(message.chat.id, True)
+            await sendConfig(message.chat.id)
             await bot.send_message(message.chat.id, e.emojize("Инструкция по установке :index_pointing_up:"), parse_mode="HTML",
                                    reply_markup=await main_buttons(user_dat))
         else:
@@ -170,18 +187,14 @@ async def start(message: types.Message):
 
             # Приветствуем нового пользователя (реферала)
             user_dat = await User.GetInfo(message.chat.id)
-            await bot.send_message(message.chat.id, e.emojize(texts_for_bot["hello_message"]), parse_mode="HTML", reply_markup=await main_buttons(user_dat))
-            await sendConfigAndInstruction(message.chat.id)
+#             await bot.send_message(message.chat.id, e.emojize(texts_for_bot["hello_message"]), parse_mode="HTML", reply_markup=await main_buttons(user_dat))
+#             await sendConfig(message.chat.id)
 
             trialText = e.emojize(f"<b>Привет, {user_dat.fullname}!</b>\n\r\n\r" \
                                   f"Дарим вам 7 дней бесплатного доступа!\n\r\n\r" \
                                   f"Пожалуйста, выберите тип телефона или планшета, для которого нужна инструкция для подключения:\n\r")
 
-            trialButtons = types.InlineKeyboardMarkup(row_width = 1)
-            trialButtons.add(
-                types.InlineKeyboardButton(e.emojize("📱iOS (iPhone, iPad)"), url="https://telegra.ph/Podklyuchenie-VPN-DUCKS-na-iPhone-09-16"),
-                types.InlineKeyboardButton(e.emojize("📱Android"), url="https://telegra.ph/Podklyuchenie-VPN-DUCKS-na-Android-09-26-2"),
-            )
+            trialButtons = await getTrialButtons()
             await bot.send_message(message.chat.id, trialText, parse_mode="HTML", reply_markup=trialButtons)
 
 @bot.message_handler(state=MyStates.editUser, content_types=["text"])
@@ -561,7 +574,7 @@ async def Work_with_Message(m: types.Message):
         return
 
     if e.demojize(m.text) == "Как подключить :gear:":
-        await sendConfigAndInstruction(m.chat.id, True)
+        await sendConfig(m.chat.id)
         return
 
     if e.demojize(m.text) == "Пригласить :woman_and_man_holding_hands:":
@@ -572,7 +585,7 @@ async def Work_with_Message(m: types.Message):
               f":fire: Получите подписку, пригласив друзей по реферальной ссылке. Они получат неделю VPN бесплатно, а если после этого оформят подписку, мы подарим вам за каждого по месяцу подписки на DUCKS VPN!\n\r\n\r" \
               f":money_bag: А если вы блогер или владелец крупного сообщества, присоединяйтесь к нашей партнерской программе и зарабатывайте, рассказывая о DUCKS VPN! Напишите нам @vpnducks_support\n\r" \
               f"\n\rВаша пригласительная ссылка: \n\r<code>{refLink}</code>"
-              f"\n\r\n\rКупили по вашей ссылке: {str(countReferal)}")
+              f"\n\r\n\rПользователей, пришедших по вашей ссылке: {str(countReferal)}")
 
         await bot.send_message(chat_id=m.chat.id, text=msg, parse_mode='HTML')
         return
@@ -586,6 +599,13 @@ async def Work_with_Message(m: types.Message):
         for admin in CONFIG["admin_tg_id"]:
             await bot.send_message(admin, f"Новое сообщение от @{m.from_user.username} ({m.from_user.id}): {e.emojize(m.text)}")
         return
+
+@bot.callback_query_handler(func=lambda c: 'Init:' in c.data)
+async def Init(call: types.CallbackQuery):
+    user_dat = await User.GetInfo(call.from_user.id)
+    device = str(call.data).split(":")[1]
+    await sendConfigAndInstructions(user_dat.tgid, device)
+    await bot.answer_callback_query(call.id)
 
 @bot.callback_query_handler(func=lambda c: 'Referrer' in c.data)
 async def Referrer(call: types.CallbackQuery):
@@ -842,7 +862,7 @@ def checkTime():
                     BotChecking.send_message(i['tgid'],
                                              e.emojize(texts_for_bot["alert_to_extend_sub"]),
                                              reply_markup=Butt_main, parse_mode="HTML")
-                    sendConfigAndInstruction(i['tgid'], True)
+                    sendConfig(i['tgid'])
 
         except Exception as err:
             print(err)
