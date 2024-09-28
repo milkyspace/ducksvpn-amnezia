@@ -521,9 +521,7 @@ async def Work_with_Message(m: types.Message):
                         readymes = ""
                     readymes += f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>)\n"
             readymass.append(readymes)
-            for i in readymass:
-                await bot.send_message(m.from_user.id, e.emojize(i),
-                                       parse_mode="HTML")
+
             return
 
         if e.demojize(m.text) == "Пользователей с подпиской":
