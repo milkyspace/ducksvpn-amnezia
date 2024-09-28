@@ -59,7 +59,7 @@ nano .env # or vim .env
 **PERC_12** is calc price for 12 months\
 **TG_TOKEN** is telegram bot token\
 **TG_SHOP_TOKEN** is yookassa token\
-**BASE_URL** is url for wg api (default http://0.0.0.0:51821/api)
+**BASE_URL** is url for wg api (default http://0.0.0.0:51821/api) \
 **PASSWORD_TO_AMNEZIA** is password to admin panel\
 **BOT_NAME** is name of telegram bot
 
