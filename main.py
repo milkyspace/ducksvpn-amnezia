@@ -639,7 +639,7 @@ async def Buy_month(call: types.CallbackQuery):
 
     bill = await bot.send_invoice(call.message.chat.id, f"Оплата VPN", f"VPN на {str(Month_count)} мес.", call.data,
                                     currency="RUB",prices=[
-                types.LabeledPrice(f"VPN на {str(Month_count)} мес.", getCostBySale(Month_count))],
+                types.LabeledPrice(f"VPN на {str(Month_count)} мес.", getCostBySale(Month_count) * 100)],
                                     provider_token=CONFIG["tg_shop_token"])
 
     await bot.answer_callback_query(call.id)
