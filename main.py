@@ -10,7 +10,6 @@ import emoji as e
 import asyncio
 import threading
 import requests
-import json
 import logging
 import os
 from datetime import datetime
@@ -35,10 +34,14 @@ CONFIG = {
     "perc_1": float(os.getenv("PERC_1")),
     "perc_3": float(os.getenv("PERC_3")),
     "perc_6": float(os.getenv("PERC_6")),
+    "perc_12": float(os.getenv("PERC_12")),
     "UTC_time": int(os.getenv("UTC_TIME")),
     "tg_token": os.getenv("TG_TOKEN"),
     "tg_shop_token": os.getenv("TG_SHOP_TOKEN"),
-    "password_to_amnezia": os.getenv("PASSWORD_TO_AMNEZIA")
+    "base_url": os.getenv("BASE_URL"),
+    "password_to_amnezia": os.getenv("PASSWORD_TO_AMNEZIA"),
+    "count_free_from_referrer": int(os.getenv("COUNT_FREE_FROM_REFERRER")),
+    "bot_name": os.getenv("BOT_NAME"),
 }
 dbworker.CONFIG = CONFIG
 buttons.CONFIG = CONFIG
@@ -49,7 +52,7 @@ with open("texts.json", encoding="utf-8") as file_handler:
 
 DBCONNECT = "data.sqlite"
 BOTAPIKEY = CONFIG["tg_token"]
-BASE_URL = 'http://0.0.0.0:51821/api'
+BASE_URL = CONFIG["base_url"]
 PASSWORD = CONFIG["password_to_amnezia"]
 
 bot = AsyncTeleBot(CONFIG["tg_token"], state_storage=StateMemoryStorage())
@@ -71,14 +74,17 @@ class MyStates(StatesGroup):
 async def sendPayMessage(chatId):
     Butt_payment = types.InlineKeyboardMarkup()
     Butt_payment.add(
-        types.InlineKeyboardButton(e.emojize(f"1 месяц: {str(round(CONFIG['perc_1'] * CONFIG['one_month_cost']))} руб."),
+        types.InlineKeyboardButton(e.emojize(f"1 месяц: {int(getCostBySale(1))} руб."),
                                    callback_data="BuyMonth:1"))
     Butt_payment.add(
-        types.InlineKeyboardButton(e.emojize(f"3 месяца: {str(round(CONFIG['perc_3'] * CONFIG['one_month_cost']))} руб. (-{round(((3 - CONFIG['perc_3']) / 3) * 100)}%)"),
+        types.InlineKeyboardButton(e.emojize(f"3 месяца: {int(getCostBySale(3))} руб. (-{getSale(3)}%)"),
                                    callback_data="BuyMonth:3"))
     Butt_payment.add(
-        types.InlineKeyboardButton(e.emojize(f"6 месяцев: {str(round(CONFIG['perc_6'] * CONFIG['one_month_cost']))} руб. (-{round(((6 - CONFIG['perc_6']) / 6) * 100)}%)"),
+        types.InlineKeyboardButton(e.emojize(f"6 месяцев: {int(getCostBySale(6))} руб. (-{getSale(6)}%)"),
                                    callback_data="BuyMonth:6"))
+    Butt_payment.add(
+        types.InlineKeyboardButton(e.emojize(f"1 год: {int(getCostBySale(12))} руб. (-{getSale(12)}%)"),
+                                   callback_data="BuyMonth:12"))
     await bot.send_message(chatId,
                            "<b>Оплатить можно с помощью Банковской карты!</b>\n\nВыберите период, на который хотите приобрести подписку:",
                            reply_markup=Butt_payment, parse_mode="HTML")
@@ -105,6 +111,19 @@ async def sendConfigAndInstruction(chatId):
         await bot.send_message(chat_id=chatId, text="Для этого необходимо оплатить подписку", reply_markup=await main_buttons(user_dat))
         await sendPayMessage(chatId)
 
+async def addTrialForReferrerByUserId(userId):
+    user_dat = await User.GetInfo(userId)
+    referrer_id = user_dat.referrer_id
+    if referrer_id is not None:
+        user_dat_referrer = await User.GetInfo(user_dat.referrer_id)
+        addTrialTime = 30 * CONFIG['count_free_from_referrer'] * 60 * 60 * 24
+        db = await aiosqlite.connect(DBCONNECT)
+        db.row_factory = sqlite3.Row
+        subscription = int(user_dat_referrer.subscription) + int(addTrialTime)
+        await db.execute(f"Update userss set subscription=subscription+{addTrialTime}, banned=false, trial_continue=false, notion_oneday=false where tgid={referrer_id}")
+        await db.commit()
+        await bot.send_message(user_dat.referrer_id, f"Поздравляем!\nПользователь, пришедший по вашей ссылке, оплатил подписку, вам добавлен +1 месяц бесплатного доступа", reply_markup=await main_buttons(user_dat_referrer))
+
 @bot.callback_query_handler(func=lambda c: 'Instruction:Query' in c.data)
 async def getInstruction(call: types.CallbackQuery):
     user_dat = await User.GetInfo(call.from_user.id)
@@ -124,18 +143,42 @@ async def start(message: types.Message):
     if message.chat.type == "private":
         await bot.delete_state(message.from_user.id)
         user_dat = await User.GetInfo(message.chat.id)
-        try:
-            username = "@" + str(message.from_user.username)
-        except:
-            username = str(message.from_user.id)
 
-        await user_dat.Adduser(username, message.from_user.full_name)
-        user_dat = await User.GetInfo(message.chat.id)
+        if user_dat.registered:
+            await sendConfigAndInstruction(message.chat.id)
+            await bot.send_message(message.chat.id, "Инструкция по установке выше", parse_mode="HTML",
+                                   reply_markup=await main_buttons(user_dat))
+        else:
+            try:
+                username = "@" + str(message.from_user.username)
+            except:
+                username = str(message.from_user.id)
+            # Определяем referrer_id
+            arg_referrer_id = message.text[7:]
+            referrer_id = None if arg_referrer_id is None else arg_referrer_id
+            await user_dat.Adduser(username, message.from_user.full_name, referrer_id)
+            # Обработка реферера
+            if referrer_id and referrer_id != user_dat.tgid:
+                # Начислим +бесплатный период рефереру
+#                 await user_dat.addTrialForReferrer(referrer_id)
+                # Пользователь пришел по реферальной ссылке, обрабатываем это
+                referrerUser = await User.GetInfo(referrer_id)
+                await bot.send_message(referrer_id,
+                                       f"По вашей ссылке пришел новый пользователь\nВы получите +1 месяц бесплатного доступа, если он оплатит подписку",
+                                       reply_markup=await main_buttons(referrerUser))
 
-        if user_dat.trial_subscription == False:
-            await bot.send_message(message.chat.id, e.emojize(texts_for_bot["trial_message"]), parse_mode="HTML", reply_markup=await main_buttons(user_dat))
+                # Если время подписки истекло, а только после было добавлено рефереру, нужно создавать wg0 конфиг
+#                 if not os.path.exists(f'/root/wg0-client-{str(referrer_id)}.conf'):
+#                     subprocess.call(f'./addusertovpn.sh {str(referrer_id)}', shell=True)
+                    # Информируем что конфиг подключения обновлен
+#                     sendConfigAndInstruction(referrer_id)
+#                     await bot.send_message(referrer_id, e.emojize(texts_for_bot["alert_to_update_wg_config"]))
 
-        await sendConfigAndInstruction(message.chat.id)
+            # Приветствуем нового пользователя (реферала)
+            user_dat = await User.GetInfo(message.chat.id)
+            await bot.send_message(message.chat.id, e.emojize(texts_for_bot["hello_message"]), parse_mode="HTML",
+                                   reply_markup=await main_buttons(user_dat))
+            await bot.send_message(message.chat.id, e.emojize(texts_for_bot["trial_message"]), parse_mode="HTML")
 
 @bot.message_handler(state=MyStates.editUser, content_types=["text"])
 async def Work_with_Message(m: types.Message):
@@ -383,7 +426,11 @@ async def Work_with_Message(m: types.Message):
 
             username = str(m.from_user.id)
 
-        await user_dat.Adduser(username, m.from_user.full_name)
+        # Определяем referrer_id
+        arg_referrer_id = m.text[7:]
+        referrer_id = arg_referrer_id if arg_referrer_id != user_dat.tgid else 0
+
+        await user_dat.Adduser(username, m.from_user.full_name, )
         await bot.send_message(m.chat.id,
                                texts_for_bot["hello_message"],
                                parse_mode="HTML", reply_markup=await main_buttons(user_dat))
@@ -417,16 +464,16 @@ async def Work_with_Message(m: types.Message):
             readymass = []
             readymes = ""
             for i in allusers:
-                if int(i[2]) > int(time.time()):
-                    if len(readymes) + len(f"{i[6]} ({i[5]}|<code>{str(i[1])}</code>) :check_mark_button:\n") > 4090:
+                if int(i['subscription']) > int(time.time()):
+                    if len(readymes) + len(f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>) :check_mark_button:\n") > 4090:
                         readymass.append(readymes)
                         readymes = ""
-                    readymes += f"{i[6]} ({i[5]}|<code>{str(i[1])}</code>) :check_mark_button:\n"
+                    readymes += f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>) :check_mark_button:\n"
                 else:
-                    if len(readymes) + len(f"{i[6]} ({i[5]}|<code>{str(i[1])}</code>)\n") > 4090:
+                    if len(readymes) + len(f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>)\n") > 4090:
                         readymass.append(readymes)
                         readymes = ""
-                    readymes += f"{i[6]} ({i[5]}|<code>{str(i[1])}</code>)\n"
+                    readymes += f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>)\n"
             readymass.append(readymes)
             for i in readymass:
                 await bot.send_message(m.from_user.id, e.emojize(i), reply_markup=await buttons.admin_buttons(),
@@ -473,43 +520,15 @@ async def Work_with_Message(m: types.Message):
                                        reply_markup=await buttons.admin_buttons(), parse_mode="HTML")
                 return
             for i in allusers:
-                if int(i[2]) > int(time.time()):
+                if int(i['subscription']) > int(time.time()):
                     if len(readymes) + len(
-                            f"{i[6]} ({i[5]}|<code>{str(i[1])}</code>) - {datetime.utcfromtimestamp(int(i[2]) + CONFIG['UTC_time'] * 3600).strftime('%d.%m.%Y %H:%M')}\n\n") > 4090:
+                            f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>) - {datetime.utcfromtimestamp(int(i['subscription']) + CONFIG['UTC_time'] * 3600).strftime('%d.%m.%Y %H:%M')}\n\n") > 4090:
                         readymass.append(readymes)
                         readymes = ""
-                    readymes += f"{i[6]} ({i[5]}|<code>{str(i[1])}</code>) - {datetime.utcfromtimestamp(int(i[2]) + CONFIG['UTC_time'] * 3600).strftime('%d.%m.%Y %H:%M')}\n\n"
+                    readymes += f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>) - {datetime.utcfromtimestamp(int(i['subscription']) + CONFIG['UTC_time'] * 3600).strftime('%d.%m.%Y %H:%M')}\n\n"
             readymass.append(readymes)
             for i in readymass:
                 await bot.send_message(m.from_user.id, e.emojize(i), parse_mode="HTML")
-            return
-        if e.demojize(m.text) == "Вывести статичных пользователей":
-            db = await aiosqlite.connect(DBCONNECT)
-            c = await db.execute(f"select * from static_profiles")
-            all_staticusers = await c.fetchall()
-            await c.close()
-            await db.close()
-            if len(all_staticusers) == 0:
-                await bot.send_message(m.from_user.id, "Статичных пользователей нету!")
-                return
-            for i in all_staticusers:
-                Butt_delete_account = types.InlineKeyboardMarkup()
-                Butt_delete_account.add(types.InlineKeyboardButton(e.emojize("Удалить пользователя :cross_mark:"),
-                                                                   callback_data=f'DELETE:{str(i[0])}'))
-
-                clients = requests.get(f"{BASE_URL}/wireguard/client", headers={"password": f"{PASSWORD}"})
-                for client in clients.json():
-                    if str(str(i[1])) == client.get('id', 0):
-                        response = requests.get(f"{BASE_URL}/wireguard/client/{client.get('id', 0)}/configuration", headers={"Content-Type": "application/json", "password": f"{PASSWORD}"})
-                        content_disposition = response.headers["Content-Disposition"]
-                        filename = f"data/{content_disposition.split('filename=')[1]}"
-                        with open(filename, "wb") as code:
-                            code.write(response.content)
-                        await bot.send_document(chat_id=m.chat.id, document=qrCodeSvg, visible_file_name=f"vpnducks_qr_{str(user_dat.tgid)}.svg")
-                        await bot.send_document(chat_id=m.chat.id, document=configFull,
-                                                visible_file_name=f"{str(str(i[1]))}.conf",
-                                                caption=f"Пользователь: <code>{str(i[1])}</code>", parse_mode="HTML",
-                                                reply_markup=Butt_delete_account)
             return
 
         if e.demojize(m.text) == "Редактировать пользователя по id":
@@ -522,11 +541,6 @@ async def Work_with_Message(m: types.Message):
             await bot.send_message(m.from_user.id, "Введите Telegram Id пользователя:",
                                    reply_markup=types.ReplyKeyboardRemove())
             await bot.set_state(m.from_user.id, MyStates.prepareUserForSendMessage)
-            return
-
-        if e.demojize(m.text) == "Статичные пользователи":
-            await bot.send_message(m.from_user.id, "Выберите пункт меню:",
-                                   reply_markup=await buttons.admin_buttons_static_users())
             return
 
         if e.demojize(m.text) == "Добавить пользователя :plus:":
@@ -542,8 +556,30 @@ async def Work_with_Message(m: types.Message):
             await sendPayMessage(m.chat.id)
         return
 
+    if e.demojize(m.text) == "Протестировать оплату :smiling_face_with_sunglasses:":
+        await user_dat.NewPay(
+            121,
+            getCostBySale(1),
+            (30*24*60*60),
+            m.from_user.id)
+        await addTrialForReferrerByUserId(m.from_user.id)
+        return
+
     if e.demojize(m.text) == "Как подключить :gear:":
         await sendConfigAndInstruction(m.chat.id)
+        return
+
+    if e.demojize(m.text) == "Рефералы :busts_in_silhouette:":
+        countReferal = await user_dat.countReferrerByUser()
+        refLink = f"https://t.me/{CONFIG['bot_name']}?start=" + str(user_dat.tgid)
+
+        msg = f"<b>Приглашайте друзей и получайте +1 месяц бесплатно за каждого нового друга, оплатившего подписку</b>\n\r\n\r" \
+              f"Количество рефералов: {str(countReferal)} " \
+              f"\n\rВаша реферальная ссылка: \n\r<code>{refLink}</code>"
+
+        await bot.send_message(chat_id=m.chat.id, text=msg, parse_mode='HTML')
+        return
+
     else:
         if "Подписка закончилась:" in m.text:
             await sendPayMessage(m.chat.id)
@@ -553,6 +589,18 @@ async def Work_with_Message(m: types.Message):
         for admin in CONFIG["admin_tg_id"]:
             await bot.send_message(admin, f"Новое сообщение от @{m.from_user.username} ({m.from_user.id}): {e.emojize(m.text)}")
         return
+
+@bot.callback_query_handler(func=lambda c: 'Referrer' in c.data)
+async def Referrer(call: types.CallbackQuery):
+    user_dat = await User.GetInfo(call.from_user.id)
+    countReferal = await user_dat.countReferrerByUser()
+    refLink = "https://t.me/FreeVpnDownloadBot?start=" + str(user_dat.tgid)
+
+    msg = f"Приглашайте друзей и получайте +1 месяц бесплатно за каждого нового друга, оплатившего подписку\n\r\n\r" \
+          f"Количество рефералов: {str(countReferal)} " \
+          f"\n\rВаша реферальная ссылка: \n\r<code>{refLink}</code>"
+
+    await bot.send_message(chat_id=call.message.chat.id, text=msg, parse_mode='HTML')
 
 @bot.callback_query_handler(func=lambda c: 'BuyMonth:' in c.data)
 async def Buy_month(call: types.CallbackQuery):
@@ -567,10 +615,12 @@ async def Buy_month(call: types.CallbackQuery):
             count = CONFIG['perc_3']
         if(Month_count == 6):
             count = CONFIG['perc_6']
+        if(Month_count == 12):
+            count = CONFIG['perc_12']
 
         bill = await bot.send_invoice(call.message.chat.id, f"Оплата VPN", f"VPN на {str(Month_count)} мес.", call.data,
                                         currency="RUB",prices=[
-                    types.LabeledPrice(f"VPN на {str(Month_count)} мес.", round(count * CONFIG['one_month_cost'] * 100))],
+                    types.LabeledPrice(f"VPN на {str(Month_count)} мес.", getCostBySale(Month_count))],
                                         provider_token=CONFIG["tg_shop_token"])
 
     await bot.answer_callback_query(call.id)
@@ -586,23 +636,14 @@ async def AddTimeToUser(tgid, timetoadd):
 
         requests.post(f"{BASE_URL}/wireguard/client", data=json.dumps({"name": str(userdat.tgid)}), headers={"Content-Type": "application/json", "password": f"{PASSWORD}"})
 
-        await bot.send_message(userdat.tgid, e.emojize(
-            'Данные для входа были обновлены, скачайте новый файл авторизации через раздел "Как подключить :gear:"'))
+        await bot.send_message(userdat.tgid, e.emojize('Данные для входа были обновлены, скачайте новый файл авторизации через раздел "Как подключить :gear:"'), parse_mode="HTML", reply_markup=await main_buttons(userdat, True))
     else:
         passdat = int(userdat.subscription) + timetoadd
         await db.execute(f"Update userss set subscription = ?, notion_oneday=false where tgid=?",
                          (str(int(userdat.subscription) + timetoadd), userdat.tgid))
+        await bot.send_message(userdat.tgid, e.emojize(
+                    'Информация о подписке обновлена'), parse_mode="HTML", reply_markup=await main_buttons(userdat, True))
     await db.commit()
-
-    Butt_main = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    dateto = datetime.utcfromtimestamp(int(passdat) + CONFIG['UTC_time'] * 3600).strftime('%d.%m.%Y %H:%M')
-    timenow = int(time.time())
-    if int(passdat) >= timenow:
-        Butt_main.add(
-            types.KeyboardButton(e.emojize(f":green_circle: Подписка активна до: {dateto} МСК")))
-
-    Butt_main.add(types.KeyboardButton(e.emojize(f"Продлить подписку :money_bag:")),
-                  types.KeyboardButton(e.emojize(f"Как подключить :gear:")))
 
 @bot.callback_query_handler(func=lambda c: 'DELETE:' in c.data or 'DELETYES:' in c.data or 'DELETNO:' in c.data)
 async def DeleteUserYesOrNo(call: types.CallbackQuery):
@@ -655,7 +696,10 @@ async def checkout(pre_checkout_query):
             count = CONFIG['perc_3']
     if(month == 6):
             count = CONFIG['perc_6']
-    if count * 100 * CONFIG['one_month_cost'] != pre_checkout_query.total_amount:
+    if(month == 12):
+            count = CONFIG['perc_12']
+
+    if getCostBySale(month) * 100 != pre_checkout_query.total_amount:
         await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=False,
                                             error_message="Нельзя купить по старой цене!")
         await bot.send_message(pre_checkout_query.from_user.id,
@@ -664,6 +708,39 @@ async def checkout(pre_checkout_query):
         await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True,
                                             error_message="Оплата не прошла, попробуйте еще раз!")
 
+def getCostBySale(month):
+    cost = month * CONFIG['one_month_cost']
+    oneMonthCost = float(CONFIG['one_month_cost'])
+    perc3 = float(CONFIG['perc_3'])
+    perc6 = float(CONFIG['perc_6'])
+    perc12 = float(CONFIG['perc_12'])
+
+    if month == 3:
+        cost = oneMonthCost * perc3
+    elif month == 6:
+        cost = oneMonthCost * perc6
+    elif month == 12:
+        cost = oneMonthCost * perc12
+
+    return int(cost)
+
+def getSale(month):
+    cost = month * CONFIG['one_month_cost']
+    oneMonthCost = float(CONFIG['one_month_cost'])
+    perc3 = float(CONFIG['perc_3'])
+    perc6 = float(CONFIG['perc_6'])
+    perc12 = float(CONFIG['perc_12'])
+
+    if month == 3:
+        sale = 100 - round((oneMonthCost * perc3 * 100) / cost)
+    elif month == 6:
+        sale = 100 - round((oneMonthCost * perc6 * 100) / cost)
+    elif month == 12:
+        sale = 100 - round((oneMonthCost * perc12 * 100) / cost)
+    else:
+        sale = 0
+    return sale
+
 @bot.message_handler(content_types=['successful_payment'])
 async def got_payment(m):
     payment: types.SuccessfulPayment = m.successful_payment
@@ -671,18 +748,30 @@ async def got_payment(m):
 
     user_dat = await User.GetInfo(m.from_user.id)
     await bot.send_message(m.from_user.id, texts_for_bot["success_pay_message"],
-                           reply_markup=await buttons.main_buttons(user_dat), parse_mode="HTML")
-    await AddTimeToUser(m.from_user.id, month * 30 * 24 * 60 * 60)
+                           reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
+
+    addTimeSubscribe = month * 30 * 24 * 60 * 60
+    await AddTimeToUser(m.from_user.id, addTimeSubscribe)
     if(month == 1):
         count = CONFIG['perc_1']
     if(month == 3):
         count = CONFIG['perc_3']
     if(month == 6):
         count = CONFIG['perc_6']
+    if(month == 12):
+        count = CONFIG['perc_12']
+
+    # save info about user
+    await user_dat.NewPay(
+        payment_id,
+        getCostBySale(month),
+        addTimeSubscribe,
+        m.from_user.id)
+
+    await addTrialForReferrerByUserId(m.from_user.id)
 
     for admin in CONFIG["admin_tg_id"]:
-        await bot.send_message(admin, f"Новая оплата подписки на <b>{month}</b> мес. <b>{round(count * CONFIG['one_month_cost'])}</b> руб.\nДля обновления информации о подписке кликните на /start", parse_mode="HTML")
-
+        await bot.send_message(admin, f"Новая оплата подписки от {m.from_user.username} ( {m.from_user.id} ) на <b>{month}</b> мес. и {getCostBySale(month)}", parse_mode="HTML")
 
 bot.add_custom_filter(asyncio_filters.StateFilter(bot))
 
@@ -698,18 +787,18 @@ def checkTime():
             db.close()
             for i in log:
                 time_now = int(time.time())
-                remained_time = int(i[2]) - time_now
-                if remained_time <= 0 and i[3] == False:
+                remained_time = int(i['subscription']) - time_now
+                if remained_time <= 0 and i['banned'] == False:
                     db = sqlite3.connect(DBCONNECT)
-                    db.execute(f"UPDATE userss SET banned=true where tgid=?", (i[1],))
+                    db.execute(f"UPDATE userss SET banned=true where tgid=?", (i['tgid'],))
                     db.commit()
 
                     response = requests.get(f"{BASE_URL}/wireguard/client", headers={"password": PASSWORD})
                     for val in response.json():
-                        if str(i[1]) == val.get('name', 0):
+                        if str(i['tgid']) == val.get('name', 0):
                             response = requests.delete(f"{BASE_URL}/wireguard/client/{val.get('id', 0)}", headers={"password": f"{PASSWORD}"})
 
-                    dateto = datetime.utcfromtimestamp(int(i[2]) + CONFIG['UTC_time'] * 3600).strftime(
+                    dateto = datetime.utcfromtimestamp(int(i['subscription']) + CONFIG['UTC_time'] * 3600).strftime(
                         '%d.%m.%Y %H:%M')
                     Butt_main = types.ReplyKeyboardMarkup(resize_keyboard=True)
                     Butt_main.add(
@@ -721,26 +810,32 @@ def checkTime():
                                              texts_for_bot["ended_sub_message"],
                                              reply_markup=Butt_main, parse_mode="HTML")
 
-                if remained_time <= 18000 and i[4] == False:
+                if remained_time <= 7200 and i['notion_oneday'] == False:
                     db = sqlite3.connect(DBCONNECT)
-                    db.execute(f"UPDATE userss SET notion_oneday=true where tgid=?", (i[1],))
+                    db.execute(f"UPDATE userss SET notion_oneday=true where tgid=?", (i['tgid'],))
                     db.commit()
+
+                    Butt_reffer = types.InlineKeyboardMarkup()
+                    Butt_reffer.add(
+                        types.InlineKeyboardButton(
+                            e.emojize(f"Бесплатно +{CONFIG['count_free_from_referrer']} месяц за нового друга, оплатившего подписку"),
+                            callback_data="Referrer"))
                     BotChecking = TeleBot(BOTAPIKEY)
-                    BotChecking.send_message(i['tgid'], texts_for_bot["alert_to_renew_sub"], parse_mode="HTML")
+                    BotChecking.send_message(i['tgid'], texts_for_bot["alert_to_renew_sub"], reply_markup=Butt_reffer, parse_mode="HTML")
 
                 # Дарим бесплатную подписку на 2 дня, если он висит 3 дня как неактивный и не ушел
                 if remained_time <= 259200 and i['trial_continue'] == 0:
                     BotChecking = TeleBot(BOTAPIKEY)
                     timetoadd = 2 * 60 * 60 * 24
                     db = sqlite3.connect(DBCONNECT)
-                    db.execute(f"UPDATE userss SET trial_continue=1 where tgid=?", (i[1],))
+                    db.execute(f"UPDATE userss SET trial_continue=1 where tgid=?", (i['tgid'],))
                     db.execute(
                         f"Update userss set subscription = ?, banned=false, notion_oneday=false where tgid=?",
-                        (str(int(time.time()) + timetoadd), i[1]))
+                        (str(int(time.time()) + timetoadd), i['tgid']))
                     db.commit()
                     db.close()
 
-                    requests.post(f"{BASE_URL}/wireguard/client", data=json.dumps({"name": str(i[1])}), headers={"Content-Type": "application/json", "password": f"{PASSWORD}"})
+                    requests.post(f"{BASE_URL}/wireguard/client", data=json.dumps({"name": str(i['tgid'])}), headers={"Content-Type": "application/json", "password": f"{PASSWORD}"})
 
                     Butt_main = types.ReplyKeyboardMarkup(resize_keyboard=True)
                     Butt_main.add(types.KeyboardButton(e.emojize(f"Продлить подписку :money_bag:")),

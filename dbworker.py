@@ -2,16 +2,31 @@ import aiosqlite
 import sqlite3
 import time
 import subprocess
-
 import requests
 import json
-
 import logging
+import os
+from dotenv import load_dotenv, dotenv_values
 
-BASE_URL = 'http://0.0.0.0:51821/api'
-PASSWORD = '199612'
+load_dotenv()
 
-CONFIG={}
+CONFIG = {
+    "admin_tg_id": [int(os.getenv("ADMIN_TG_ID_1")), int(os.getenv("ADMIN_TG_ID_2"))],
+    "one_month_cost": float(os.getenv("ONE_MONTH_COST")),
+    "trial_period": os.getenv("TRIAL_PERIOD"),
+    "perc_1": float(os.getenv("PERC_1")),
+    "perc_3": float(os.getenv("PERC_3")),
+    "perc_6": float(os.getenv("PERC_6")),
+    "UTC_time": int(os.getenv("UTC_TIME")),
+    "tg_token": os.getenv("TG_TOKEN"),
+    "tg_shop_token": os.getenv("TG_SHOP_TOKEN"),
+    "base_url": os.getenv("BASE_URL"),
+    "password_to_amnezia": os.getenv("PASSWORD_TO_AMNEZIA"),
+}
+
+BASE_URL = CONFIG["base_url"]
+PASSWORD = CONFIG["password_to_amnezia"]
+
 DBCONNECT="data.sqlite"
 
 class User:
@@ -41,6 +56,7 @@ class User:
             self.registered = True
             self.username = log["username"]
             self.fullname = log["fullname"]
+            self.referrer_id = log["referrer_id"]
         else:
             self.registered = False
 
@@ -63,7 +79,6 @@ class User:
 
     async def NewPay(self,bill_id,summ,time_to_add,mesid):
         pay_info = await self.PaymentInfo()
-        #print(pay_info)
         if pay_info is None:
             db = await aiosqlite.connect(DBCONNECT)
             await db.execute(f"INSERT INTO payments (tgid,bill_id,amount,time_to_add,mesid) values (?,?,?,?,?)",
@@ -79,7 +94,7 @@ class User:
         await db.close()
         return log
 
-    async def Adduser(self,username,full_name):
+    async def Adduser(self, username, full_name, referrer_id):
         if self.registered == False:
             response = requests.post(f"{BASE_URL}/wireguard/client", data=json.dumps({"name": str(self.tgid)}), headers={"Content-Type": "application/json", "password": f"{PASSWORD}"})
             if response.status_code == 200:
@@ -87,7 +102,7 @@ class User:
                 for client in clients.json():
                     if str(self.tgid) == client.get('name', 0):
                         db = await aiosqlite.connect(DBCONNECT)
-                        await db.execute(f"INSERT INTO userss (tgid,subscription,username,fullname,wg_key) values (?,?,?,?,?)", (self.tgid,str(int(time.time())+int(CONFIG['trial_period']) * 86400),str(username),str(full_name),client.get('id', 0)))
+                        await db.execute(f"INSERT INTO userss (tgid,subscription,username,fullname,wg_key,referrer_id) values (?,?,?,?,?,?)", (self.tgid,str(int(time.time())+int(CONFIG['trial_period']) * 86400),str(username),str(full_name),client.get('id', 0),referrer_id))
                         await db.commit()
             self.registered = True
 
@@ -129,3 +144,11 @@ class User:
             db.row_factory = sqlite3.Row
             await db.execute(f"Update userss set username = ?, fullname = ? where id = ?", (username,message.from_user.full_name,self.id))
             await db.commit()
+
+    async def countReferrerByUser(self):
+        db = await aiosqlite.connect(DBCONNECT)
+        c = await db.execute(f"select count(*) as count from userss where referrer_id=?",
+                         (self.tgid,))
+        log = await c.fetchone()
+        await db.commit()
+        return 0 if log[0] is None else log[0]
