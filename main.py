@@ -12,6 +12,7 @@ import threading
 import requests
 import logging
 import os
+import time
 from datetime import datetime
 from telebot import TeleBot
 from pyqiwip2p import QiwiP2P
@@ -528,6 +529,7 @@ async def Work_with_Message(m: types.Message):
             for i in readymass:
                 await bot.send_message(m.from_user.id, e.emojize(i), reply_markup=await buttons.admin_buttons(),
                                        parse_mode="HTML")
+                time.sleep(1)
             return
 
         if e.demojize(m.text) == "Продлить пробный период":
@@ -579,6 +581,7 @@ async def Work_with_Message(m: types.Message):
             readymass.append(readymes)
             for i in readymass:
                 await bot.send_message(m.from_user.id, e.emojize(i), parse_mode="HTML")
+                time.sleep(1)
             return
 
         if e.demojize(m.text) == "Редактировать пользователя по id":
