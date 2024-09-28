@@ -142,7 +142,7 @@ async def addTrialForReferrerByUserId(userId):
         subscription = int(user_dat_referrer.subscription) + int(addTrialTime)
         await db.execute(f"Update userss set subscription=subscription+{addTrialTime}, banned=false, trial_continue=false, notion_oneday=false where tgid={referrer_id}")
         await db.commit()
-        await bot.send_message(user_dat.referrer_id, f"<b>Поздравляем!</b>\nПользователь, пришедший по вашей ссылке, оплатил подписку, вам добавлен <b>+1 месяц</b> бесплатного доступа", reply_markup=await main_buttons(user_dat_referrer), parse_mode="HTML")
+        await bot.send_message(user_dat.referrer_id, f"<b>Поздравляем!</b>\nПользователь, пришедший по вашей ссылке, оплатил подписку, вам добавлен <b>+1 месяц</b> бесплатного доступа", reply_markup=await main_buttons(user_dat_referrer, True), parse_mode="HTML")
 
 @bot.callback_query_handler(func=lambda c: 'Instruction:Query' in c.data)
 async def getInstruction(call: types.CallbackQuery):
@@ -584,7 +584,7 @@ async def Work_with_Message(m: types.Message):
         msg = e.emojize(f"<b>Реферальная программа</b>\n\r\n\r" \
               f":fire: Получите подписку, пригласив друзей по реферальной ссылке. Они получат неделю VPN бесплатно, а если после этого оформят подписку, мы подарим вам за каждого по месяцу подписки на DUCKS VPN!\n\r\n\r" \
               f":money_bag: А если вы блогер или владелец крупного сообщества, присоединяйтесь к нашей партнерской программе и зарабатывайте, рассказывая о DUCKS VPN! Напишите нам @vpnducks_support\n\r" \
-              f"\n\rВаша пригласительная ссылка: \n\r<code>{refLink}</code>"
+              f"\n\rВаша пригласительная ссылка (кликните по ней, чтобы скопировать): \n\r<code>{refLink}</code>"
               f"\n\r\n\rПользователей, пришедших по вашей ссылке: {str(countReferal)}")
 
         await bot.send_message(chat_id=m.chat.id, text=msg, parse_mode='HTML')
@@ -616,7 +616,7 @@ async def Referrer(call: types.CallbackQuery):
     msg = e.emojize(f"<b>Реферальная программа</b>\n\r\n\r" \
           f":fire: Получите подписку, пригласив друзей по реферальной ссылке. Они получат неделю VPN бесплатно, а если после этого оформят подписку, мы подарим вам за каждого по месяцу подписки на DUCKS VPN!\n\r\n\r" \
           f":money_bag: А если вы блогер или владелец крупного сообщества, присоединяйтесь к нашей партнерской программе и зарабатывайте, рассказывая о DUCKS VPN! Напишите нам @vpnducks_support\n\r" \
-          f"\n\rВаша пригласительная ссылка: \n\r<code>{refLink}</code>"
+          f"\n\rВаша пригласительная ссылка (кликните по ней, чтобы скопировать): \n\r<code>{refLink}</code>"
           f"\n\r\n\rКупили по вашей ссылке: {str(countReferal)}")
 
     await bot.send_message(chat_id=call.message.chat.id, text=msg, parse_mode='HTML')
@@ -791,7 +791,7 @@ async def got_payment(m):
     await addTrialForReferrerByUserId(m.from_user.id)
 
     for admin in CONFIG["admin_tg_id"]:
-        await bot.send_message(admin, f"Новая оплата подписки от {m.from_user.username} ( {m.from_user.id} ) на <b>{month}</b> мес. и {getCostBySale(month)}", parse_mode="HTML")
+        await bot.send_message(admin, f"Новая оплата подписки от @{m.from_user.username} ( {m.from_user.id} ) на <b>{month}</b> мес. : {getCostBySale(month)} руб.", parse_mode="HTML")
 
 bot.add_custom_filter(asyncio_filters.StateFilter(bot))
 
