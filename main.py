@@ -12,7 +12,6 @@ import threading
 import requests
 import logging
 import os
-import time
 from datetime import datetime
 from telebot import TeleBot
 from pyqiwip2p import QiwiP2P
@@ -417,12 +416,8 @@ async def Work_with_Message(m: types.Message):
         await bot.send_message(m.from_user.id, "Вернул вас назад!", reply_markup=await buttons.admin_buttons())
         return
 
-    db = sqlite3.connect(DBCONNECT)
-    db.row_factory = sqlite3.Row
-    c = db.execute(f"SELECT * FROM userss where banned=true")
-    allusers = c.fetchall()
-    c.close()
-    db.close()
+    user_dat = await User.GetInfo(m.from_user.id)
+    allusers = await user_dat.GetAllUsersWithoutSub()
 
     readymass = []
     readymes = ""
@@ -527,40 +522,8 @@ async def Work_with_Message(m: types.Message):
                     readymes += f"{i['fullname']} ({i['username']}|<code>{str(i['tgid'])}</code>)\n"
             readymass.append(readymes)
             for i in readymass:
-                await bot.send_message(m.from_user.id, e.emojize(i), reply_markup=await buttons.admin_buttons(),
+                await bot.send_message(m.from_user.id, e.emojize(i),
                                        parse_mode="HTML")
-                time.sleep(3)
-            return
-
-        if e.demojize(m.text) == "Продлить пробный период":
-            db = sqlite3.connect(DBCONNECT)
-            db.row_factory = sqlite3.Row
-            c = db.execute(f"SELECT * FROM userss where banned=true and username <> '@None'")
-            log = c.fetchall()
-            c.close()
-            db.close()
-            BotChecking = TeleBot(BOTAPIKEY)
-            timetoadd = 2 * 60 * 60 * 24
-            countAdded = 0
-            db = sqlite3.connect(DBCONNECT)
-            for i in log:
-                countAdded += 1
-                db.execute(f"Update userss set subscription = ?, banned=false, notion_oneday=false where tgid=?",
-                           (str(int(time.time()) + timetoadd), i["tgid"]))
-                db.commit()
-                db.close()
-
-                requests.post(f"{BASE_URL}/wireguard/client", data=json.dumps({"name": str(i["tgid"])}), headers={"Content-Type": "application/json", "password": f"{PASSWORD}"})
-
-                Butt_main = types.ReplyKeyboardMarkup(resize_keyboard=True)
-                Butt_main.add(types.KeyboardButton(e.emojize(f"Продлить подписку :money_bag:")),
-                              types.KeyboardButton(e.emojize(f"Как подключить :gear:")))
-                BotChecking.send_message(i['tgid'],
-                                         texts_for_bot["alert_to_extend_sub"],
-                                         reply_markup=Butt_main, parse_mode="HTML")
-
-                for admin in CONFIG["admin_tg_id"]:
-                    BotChecking.send_message(admin, f"Добавлен пробный период {countAdded} пользователям", parse_mode="HTML")
             return
 
         if e.demojize(m.text) == "Пользователей с подпиской":
@@ -568,7 +531,7 @@ async def Work_with_Message(m: types.Message):
             readymass = []
             readymes = ""
             if len(allusers) == 0:
-                await bot.send_message(m.from_user.id, e.emojize("Нету пользователей с подпиской!"),
+                await bot.send_message(m.from_user.id, e.emojize("Нет пользователей с подпиской!"),
                                        reply_markup=await buttons.admin_buttons(), parse_mode="HTML")
                 return
             for i in allusers:
@@ -581,7 +544,6 @@ async def Work_with_Message(m: types.Message):
             readymass.append(readymes)
             for i in readymass:
                 await bot.send_message(m.from_user.id, e.emojize(i), parse_mode="HTML")
-                time.sleep(3)
             return
 
         if e.demojize(m.text) == "Редактировать пользователя по id":
