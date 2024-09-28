@@ -21,7 +21,7 @@ async def main_buttons(user: User, wasUpdate = None):
 
         Butt_main.add(types.KeyboardButton(e.emojize(f"Продлить подписку :money_bag:")),types.KeyboardButton(e.emojize(f"Как подключить :gear:")))
 
-        Butt_main.add(types.KeyboardButton(e.emojize(f"Почему стоит выбрать нас? :smiling_face_with_sunglasses:")), types.KeyboardButton(e.emojize(f"Рефералы :busts_in_silhouette:")))
+        Butt_main.add(types.KeyboardButton(e.emojize(f"Почему стоит выбрать нас? :smiling_face_with_sunglasses:")), types.KeyboardButton(e.emojize(f"Пригласить :woman_and_man_holding_hands:")))
 
         if user.tgid in CONFIG["admin_tg_id"]:
             Butt_main.add(types.KeyboardButton(e.emojize(f"Админ-панель :smiling_face_with_sunglasses:")))
@@ -32,7 +32,6 @@ async def admin_buttons():
     Butt_admin.add(types.KeyboardButton(e.emojize(f"Вывести пользователей :bust_in_silhouette:")))
     Butt_admin.add(types.KeyboardButton(e.emojize(f"Редактировать пользователя по id")))
     Butt_admin.add(types.KeyboardButton(e.emojize(f"Отправить пользователю сообщение :pencil:")))
-    Butt_admin.add(types.KeyboardButton(e.emojize(f"Протестировать оплату :smiling_face_with_sunglasses:")))
     Butt_admin.add(types.KeyboardButton(e.emojize("Главное меню :right_arrow_curving_left:")))
     return Butt_admin
 

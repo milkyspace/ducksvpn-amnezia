@@ -122,7 +122,7 @@ async def addTrialForReferrerByUserId(userId):
         subscription = int(user_dat_referrer.subscription) + int(addTrialTime)
         await db.execute(f"Update userss set subscription=subscription+{addTrialTime}, banned=false, trial_continue=false, notion_oneday=false where tgid={referrer_id}")
         await db.commit()
-        await bot.send_message(user_dat.referrer_id, f"Поздравляем!\nПользователь, пришедший по вашей ссылке, оплатил подписку, вам добавлен +1 месяц бесплатного доступа", reply_markup=await main_buttons(user_dat_referrer))
+        await bot.send_message(user_dat.referrer_id, f"<b>Поздравляем!</b>\nПользователь, пришедший по вашей ссылке, оплатил подписку, вам добавлен <b>+1 месяц</b> бесплатного доступа", reply_markup=await main_buttons(user_dat_referrer), parse_mode="HTML")
 
 @bot.callback_query_handler(func=lambda c: 'Instruction:Query' in c.data)
 async def getInstruction(call: types.CallbackQuery):
@@ -159,20 +159,11 @@ async def start(message: types.Message):
             await user_dat.Adduser(username, message.from_user.full_name, referrer_id)
             # Обработка реферера
             if referrer_id and referrer_id != user_dat.tgid:
-                # Начислим +бесплатный период рефереру
-#                 await user_dat.addTrialForReferrer(referrer_id)
                 # Пользователь пришел по реферальной ссылке, обрабатываем это
                 referrerUser = await User.GetInfo(referrer_id)
                 await bot.send_message(referrer_id,
                                        f"По вашей ссылке пришел новый пользователь\nВы получите +1 месяц бесплатного доступа, если он оплатит подписку",
                                        reply_markup=await main_buttons(referrerUser))
-
-                # Если время подписки истекло, а только после было добавлено рефереру, нужно создавать wg0 конфиг
-#                 if not os.path.exists(f'/root/wg0-client-{str(referrer_id)}.conf'):
-#                     subprocess.call(f'./addusertovpn.sh {str(referrer_id)}', shell=True)
-                    # Информируем что конфиг подключения обновлен
-#                     sendConfigAndInstruction(referrer_id)
-#                     await bot.send_message(referrer_id, e.emojize(texts_for_bot["alert_to_update_wg_config"]))
 
             # Приветствуем нового пользователя (реферала)
             user_dat = await User.GetInfo(message.chat.id)
@@ -556,26 +547,19 @@ async def Work_with_Message(m: types.Message):
             await sendPayMessage(m.chat.id)
         return
 
-    if e.demojize(m.text) == "Протестировать оплату :smiling_face_with_sunglasses:":
-        await user_dat.NewPay(
-            121,
-            getCostBySale(1),
-            (30*24*60*60),
-            m.from_user.id)
-        await addTrialForReferrerByUserId(m.from_user.id)
-        return
-
     if e.demojize(m.text) == "Как подключить :gear:":
         await sendConfigAndInstruction(m.chat.id)
         return
 
-    if e.demojize(m.text) == "Рефералы :busts_in_silhouette:":
+    if e.demojize(m.text) == "Пригласить :woman_and_man_holding_hands:":
         countReferal = await user_dat.countReferrerByUser()
         refLink = f"https://t.me/{CONFIG['bot_name']}?start=" + str(user_dat.tgid)
 
-        msg = f"<b>Приглашайте друзей и получайте +1 месяц бесплатно за каждого нового друга, оплатившего подписку</b>\n\r\n\r" \
-              f"Количество рефералов: {str(countReferal)} " \
-              f"\n\rВаша реферальная ссылка: \n\r<code>{refLink}</code>"
+        msg = e.emojize(f"<b>Реферальная программа</b>\n\r\n\r" \
+              f":fire: Получите подписку, пригласив друзей по реферальной ссылке. Они получат неделю VPN бесплатно, а если после этого оформят подписку, мы подарим вам за каждого по месяцу подписки на DUCKS VPN!\n\r\n\r" \
+              f":money_bag: А если вы блогер или владелец крупного сообщества, присоединяйтесь к нашей партнерской программе и зарабатывайте, рассказывая о DUCKS VPN! Напишите @vpnducks_support сообщение с пометкой #реклама\n\r" \
+              f"\n\rВаша пригласительная ссылка: \n\r<code>{refLink}</code>"
+              f"\n\r\n\rКупили по вашей ссылке: {str(countReferal)}")
 
         await bot.send_message(chat_id=m.chat.id, text=msg, parse_mode='HTML')
         return
@@ -596,9 +580,11 @@ async def Referrer(call: types.CallbackQuery):
     countReferal = await user_dat.countReferrerByUser()
     refLink = "https://t.me/FreeVpnDownloadBot?start=" + str(user_dat.tgid)
 
-    msg = f"Приглашайте друзей и получайте +1 месяц бесплатно за каждого нового друга, оплатившего подписку\n\r\n\r" \
-          f"Количество рефералов: {str(countReferal)} " \
-          f"\n\rВаша реферальная ссылка: \n\r<code>{refLink}</code>"
+    msg = e.emojize(f"<b>Реферальная программа</b>\n\r\n\r" \
+          f":fire: Получите подписку, пригласив друзей по реферальной ссылке. Они получат неделю VPN бесплатно, а если после этого оформят подписку, мы подарим вам за каждого по месяцу подписки на DUCKS VPN!\n\r\n\r" \
+          f":money_bag: А если вы блогер или владелец крупного сообщества, присоединяйтесь к нашей партнерской программе и зарабатывайте, рассказывая о DUCKS VPN! Напишите @vpnducks_support сообщение с пометкой #реклама\n\r" \
+          f"\n\rВаша пригласительная ссылка: \n\r<code>{refLink}</code>"
+          f"\n\r\n\rКупили по вашей ссылке: {str(countReferal)}")
 
     await bot.send_message(chat_id=call.message.chat.id, text=msg, parse_mode='HTML')
 
