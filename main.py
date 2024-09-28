@@ -89,7 +89,7 @@ async def sendPayMessage(chatId):
                            "<b>Оплатить можно с помощью Банковской карты!</b>\n\nВыберите период, на который хотите приобрести подписку:",
                            reply_markup=Butt_payment, parse_mode="HTML")
 
-async def sendConfigAndInstruction(chatId):
+async def sendConfigAndInstruction(chatId, showButtonsPanel=False):
     user_dat = await User.GetInfo(chatId)
     if user_dat.trial_subscription == False:
         Butt_how_to = types.InlineKeyboardMarkup()
@@ -106,7 +106,10 @@ async def sendConfigAndInstruction(chatId):
                 with open(filename, "wb") as code:
                     code.write(response.content)
                 configFull = open(filename, 'rb')
-                await bot.send_document(chat_id=chatId, caption=f"1. Сохраните файл настройки vpnducks_{str(user_dat.tgid)}.conf, прикрепленный выше.\n\n2. Установите приложение AmneziaVPN: <a href='https://apps.apple.com/us/app/amneziavpn/id1600529900'>iPhone</a>, <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>Android</a>, <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0_x64.exe'>Windows</a> или <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0.dmg'>Mac</a>\n\n3. Откройте приложение AmneziaVPN и импортируйте в него скачанный ранее файл настройки vpnducks_{str(user_dat.tgid)}.conf", parse_mode="HTML", reply_markup=Butt_how_to, document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
+                if showButtonsPanel:
+                    await bot.send_document(chat_id=chatId, caption=f"1. Сохраните файл настройки vpnducks_{str(user_dat.tgid)}.conf, прикрепленный выше.\n\n2. Установите приложение AmneziaVPN: <a href='https://apps.apple.com/us/app/amneziavpn/id1600529900'>iPhone</a>, <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>Android</a>, <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0_x64.exe'>Windows</a> или <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0.dmg'>Mac</a>\n\n3. Откройте приложение AmneziaVPN и импортируйте в него скачанный ранее файл настройки vpnducks_{str(user_dat.tgid)}.conf", parse_mode="HTML", reply_markup=Butt_how_to, document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
+                else:
+                    await bot.send_document(chat_id=chatId, caption=f"1. Сохраните файл настройки vpnducks_{str(user_dat.tgid)}.conf, прикрепленный выше.\n\n2. Установите приложение AmneziaVPN: <a href='https://apps.apple.com/us/app/amneziavpn/id1600529900'>iPhone</a>, <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>Android</a>, <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0_x64.exe'>Windows</a> или <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0.dmg'>Mac</a>\n\n3. Откройте приложение AmneziaVPN и импортируйте в него скачанный ранее файл настройки vpnducks_{str(user_dat.tgid)}.conf", parse_mode="HTML", document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
     else:
         await bot.send_message(chat_id=chatId, text="Для этого необходимо оплатить подписку", reply_markup=await main_buttons(user_dat))
         await sendPayMessage(chatId)
@@ -145,8 +148,8 @@ async def start(message: types.Message):
         user_dat = await User.GetInfo(message.chat.id)
 
         if user_dat.registered:
-            await sendConfigAndInstruction(message.chat.id)
-            await bot.send_message(message.chat.id, "Инструкция по установке выше", parse_mode="HTML",
+            await sendConfigAndInstruction(message.chat.id, True)
+            await bot.send_message(message.chat.id, e.emojize("Инструкция по установке :index_pointing_up:"), parse_mode="HTML",
                                    reply_markup=await main_buttons(user_dat))
         else:
             try:
@@ -167,9 +170,19 @@ async def start(message: types.Message):
 
             # Приветствуем нового пользователя (реферала)
             user_dat = await User.GetInfo(message.chat.id)
-            await bot.send_message(message.chat.id, e.emojize(texts_for_bot["hello_message"]), parse_mode="HTML",
-                                   reply_markup=await main_buttons(user_dat))
-            await bot.send_message(message.chat.id, e.emojize(texts_for_bot["trial_message"]), parse_mode="HTML")
+            await bot.send_message(message.chat.id, e.emojize(texts_for_bot["hello_message"]), parse_mode="HTML", reply_markup=await main_buttons(user_dat))
+            await sendConfigAndInstruction(message.chat.id)
+
+            trialText = e.emojize(f"<b>Привет, {user_dat.fullname}!</b>\n\r\n\r" \
+                                  f"Дарим вам 7 дней бесплатного доступа!\n\r\n\r" \
+                                  f"Пожалуйста, выберите тип телефона или планшета, для которого нужна инструкция для подключения:\n\r")
+
+            trialButtons = types.InlineKeyboardMarkup(row_width = 1)
+            trialButtons.add(
+                types.InlineKeyboardButton(e.emojize("📱iOS (iPhone, iPad)"), url="https://telegra.ph/Podklyuchenie-VPN-DUCKS-na-iPhone-09-16"),
+                types.InlineKeyboardButton(e.emojize("📱Android"), url="https://telegra.ph/Podklyuchenie-VPN-DUCKS-na-Android-09-26-2"),
+            )
+            await bot.send_message(message.chat.id, trialText, parse_mode="HTML", reply_markup=trialButtons)
 
 @bot.message_handler(state=MyStates.editUser, content_types=["text"])
 async def Work_with_Message(m: types.Message):
@@ -548,7 +561,7 @@ async def Work_with_Message(m: types.Message):
         return
 
     if e.demojize(m.text) == "Как подключить :gear:":
-        await sendConfigAndInstruction(m.chat.id)
+        await sendConfigAndInstruction(m.chat.id, True)
         return
 
     if e.demojize(m.text) == "Пригласить :woman_and_man_holding_hands:":
@@ -557,7 +570,7 @@ async def Work_with_Message(m: types.Message):
 
         msg = e.emojize(f"<b>Реферальная программа</b>\n\r\n\r" \
               f":fire: Получите подписку, пригласив друзей по реферальной ссылке. Они получат неделю VPN бесплатно, а если после этого оформят подписку, мы подарим вам за каждого по месяцу подписки на DUCKS VPN!\n\r\n\r" \
-              f":money_bag: А если вы блогер или владелец крупного сообщества, присоединяйтесь к нашей партнерской программе и зарабатывайте, рассказывая о DUCKS VPN! Напишите @vpnducks_support сообщение с пометкой #реклама\n\r" \
+              f":money_bag: А если вы блогер или владелец крупного сообщества, присоединяйтесь к нашей партнерской программе и зарабатывайте, рассказывая о DUCKS VPN! Напишите нам @vpnducks_support\n\r" \
               f"\n\rВаша пригласительная ссылка: \n\r<code>{refLink}</code>"
               f"\n\r\n\rКупили по вашей ссылке: {str(countReferal)}")
 
@@ -582,7 +595,7 @@ async def Referrer(call: types.CallbackQuery):
 
     msg = e.emojize(f"<b>Реферальная программа</b>\n\r\n\r" \
           f":fire: Получите подписку, пригласив друзей по реферальной ссылке. Они получат неделю VPN бесплатно, а если после этого оформят подписку, мы подарим вам за каждого по месяцу подписки на DUCKS VPN!\n\r\n\r" \
-          f":money_bag: А если вы блогер или владелец крупного сообщества, присоединяйтесь к нашей партнерской программе и зарабатывайте, рассказывая о DUCKS VPN! Напишите @vpnducks_support сообщение с пометкой #реклама\n\r" \
+          f":money_bag: А если вы блогер или владелец крупного сообщества, присоединяйтесь к нашей партнерской программе и зарабатывайте, рассказывая о DUCKS VPN! Напишите нам @vpnducks_support\n\r" \
           f"\n\rВаша пригласительная ссылка: \n\r<code>{refLink}</code>"
           f"\n\r\n\rКупили по вашей ссылке: {str(countReferal)}")
 
@@ -829,7 +842,7 @@ def checkTime():
                     BotChecking.send_message(i['tgid'],
                                              e.emojize(texts_for_bot["alert_to_extend_sub"]),
                                              reply_markup=Butt_main, parse_mode="HTML")
-                    sendConfigAndInstruction(i['tgid'])
+                    sendConfigAndInstruction(i['tgid'], True)
 
         except Exception as err:
             print(err)
