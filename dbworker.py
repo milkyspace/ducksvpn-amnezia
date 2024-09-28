@@ -109,7 +109,7 @@ class User:
     async def GetAllUsers(self):
         db = await aiosqlite.connect(DBCONNECT)
         db.row_factory = sqlite3.Row
-        c = await db.execute(f"SELECT * FROM userss")
+        c = await db.execute(f"SELECT * FROM userss ORDER BY id DESC")
         log = await c.fetchall()
         await c.close()
         await db.close()
@@ -118,7 +118,7 @@ class User:
     async def GetAllUsersWithSub(self):
         db = await aiosqlite.connect(DBCONNECT)
         db.row_factory = sqlite3.Row
-        c = await db.execute(f"SELECT * FROM userss where subscription > ?",(str(int(time.time())),))
+        c = await db.execute(f"SELECT * FROM userss where subscription > ? ORDER BY id DESC",(str(int(time.time())),))
         log = await c.fetchall()
         await c.close()
         await db.close()
