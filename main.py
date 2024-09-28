@@ -780,7 +780,7 @@ async def got_payment(m):
     if(month == 12):
         count = CONFIG['perc_12']
 
-    payment_id = str(m.data).split(":")[1]
+    payment_id = str(payment.provider_payment_charge_id)
     # save info about user
     await user_dat.NewPay(
         payment_id,
