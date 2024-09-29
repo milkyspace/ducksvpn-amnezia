@@ -762,6 +762,9 @@ async def got_payment(m):
     payment: types.SuccessfulPayment = m.successful_payment
     month = int(str(payment.invoice_payload).split(":")[1])
 
+    user_dat = await User.GetInfo(m.from_user.id)
+    await bot.send_message(m.from_user.id, e.emojize(texts_for_bot["success_pay_message"]), reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
+
     addTimeSubscribe = month * 30 * 24 * 60 * 60
     await AddTimeToUser(m.from_user.id, addTimeSubscribe)
     if(month == 1):
@@ -782,9 +785,6 @@ async def got_payment(m):
         m.from_user.id)
 
     await addTrialForReferrerByUserId(m.from_user.id)
-
-    user_dat = await User.GetInfo(m.from_user.id)
-    await bot.send_message(m.from_user.id, e.emojize(texts_for_bot["success_pay_message"]), reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
 
     for admin in CONFIG["admin_tg_id"]:
         await bot.send_message(admin, f"Новая оплата подписки от @{m.from_user.username} ( {m.from_user.id} ) на <b>{month}</b> мес. : {getCostBySale(month)} руб.", parse_mode="HTML")
