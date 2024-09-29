@@ -101,11 +101,6 @@ async def sendPayMessage(chatId):
 async def sendConfig(chatId):
     user_dat = await User.GetInfo(chatId)
     if user_dat.trial_subscription == False:
-        Butt_how_to = types.InlineKeyboardMarkup()
-        Butt_how_to.add(
-            types.InlineKeyboardButton(e.emojize("Подробнее как импортировать файл"),
-                                       callback_data="Instruction:Query"))
-
         clients = requests.get(f"{BASE_URL}/wireguard/client", headers={"password": f"{PASSWORD}"})
         trialButtons = await getTrialButtons()
         await bot.send_message(chat_id=chatId, text=f"Пожалуйста, выберите тип телефона или планшета, для которого нужна инструкция для подключения:", parse_mode="HTML", reply_markup=trialButtons)
@@ -768,8 +763,10 @@ async def got_payment(m):
     month = int(str(payment.invoice_payload).split(":")[1])
 
     user_dat = await User.GetInfo(m.from_user.id)
-    await bot.send_message(m.from_user.id, texts_for_bot["success_pay_message"],
-                           reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
+    if user_dat.trial_subscription == False:
+        await bot.send_message(m.from_user.id, e.emojize(texts_for_bot["success_pay_message"]), reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
+    else:
+        await bot.send_message(m.from_user.id, e.emojize(texts_for_bot["success_pay_message_banned"]), reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
 
     addTimeSubscribe = month * 30 * 24 * 60 * 60
     await AddTimeToUser(m.from_user.id, addTimeSubscribe)
