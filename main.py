@@ -820,10 +820,9 @@ def checkTime():
                     dateto = datetime.utcfromtimestamp(int(i['subscription']) + CONFIG['UTC_time'] * 3600).strftime(
                         '%d.%m.%Y %H:%M')
                     Butt_main = types.ReplyKeyboardMarkup(resize_keyboard=True)
-                    Butt_main.add(
-                        types.KeyboardButton(e.emojize(f":red_circle: Подписка закончилась: {dateto} МСК")))
-                    Butt_main.add(types.KeyboardButton(e.emojize(f"Продлить подписку :money_bag:")),
-                                  types.KeyboardButton(e.emojize(f"Как подключить :gear:")))
+                    Butt_main.add(types.KeyboardButton(e.emojize(f":red_circle: Подписка закончилась: {dateto} МСК")))
+                    Butt_main.add(types.KeyboardButton(e.emojize(f"Продлить подписку :money_bag:")))
+                    Butt_main.add(types.KeyboardButton(e.emojize(f"Как подключить :gear:")), types.KeyboardButton(e.emojize(f"Пригласить :woman_and_man_holding_hands:")))
                     BotChecking = TeleBot(BOTAPIKEY)
                     BotChecking.send_message(i['tgid'],
                                              texts_for_bot["ended_sub_message"],
