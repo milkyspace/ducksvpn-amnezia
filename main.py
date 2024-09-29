@@ -191,8 +191,8 @@ async def start(message: types.Message):
 #             await bot.send_message(message.chat.id, e.emojize(texts_for_bot["hello_message"]), parse_mode="HTML", reply_markup=await main_buttons(user_dat))
 #             await sendConfig(message.chat.id)
 
-            trialText = e.emojize(f"<b>Привет, {user_dat.fullname}!</b>\n\r\n\r" \
-                                  f"Дарим вам 7 дней бесплатного доступа!\n\r\n\r" \
+            trialText = e.emojize(f"Привет, {user_dat.fullname}!\n\r\n\r" \
+                                  f":gift: <b>Дарим вам 7 дней бесплатного доступа!</b>\n\r\n\r" \
                                   f"Пожалуйста, выберите тип телефона или планшета, для которого нужна инструкция для подключения:\n\r")
 
             trialButtons = await getTrialButtons()
