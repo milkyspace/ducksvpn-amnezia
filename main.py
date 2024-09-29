@@ -652,7 +652,7 @@ async def AddTimeToUser(tgid, timetoadd):
 
         requests.post(f"{BASE_URL}/wireguard/client", data=json.dumps({"name": str(userdat.tgid)}), headers={"Content-Type": "application/json", "password": f"{PASSWORD}"})
 
-        await bot.send_message(userdat.tgid, e.emojize('Данные для входа были обновлены, скачайте новый файл авторизации через раздел "Как подключить :gear:"'), parse_mode="HTML", reply_markup=await main_buttons(userdat, True))
+        await bot.send_message(userdat.tgid, e.emojize('<b>Ваш конфигурационный файл был обновлен</b>\n\nНеобходимо импортировать новый файл в приложение Amnezia Vpn.\nНажмите на кнопку <b>Как подключить :gear:</b> и следуйте инструкции для вашего устройства\nНе забудьте удалить предыдущее соединение в Amnezia Vpn'), parse_mode="HTML", reply_markup=await main_buttons(userdat, True))
     else:
         passdat = int(userdat.subscription) + timetoadd
         await db.execute(f"Update userss set subscription = ?, notion_oneday=false where tgid=?",
@@ -763,10 +763,7 @@ async def got_payment(m):
     month = int(str(payment.invoice_payload).split(":")[1])
 
     user_dat = await User.GetInfo(m.from_user.id)
-    if user_dat.trial_subscription == False:
-        await bot.send_message(m.from_user.id, e.emojize(texts_for_bot["success_pay_message"]), reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
-    else:
-        await bot.send_message(m.from_user.id, e.emojize(texts_for_bot["success_pay_message_banned"]), reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
+    await bot.send_message(m.from_user.id, e.emojize(texts_for_bot["success_pay_message"]), reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
 
     addTimeSubscribe = month * 30 * 24 * 60 * 60
     await AddTimeToUser(m.from_user.id, addTimeSubscribe)
