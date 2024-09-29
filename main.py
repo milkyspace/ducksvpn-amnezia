@@ -652,7 +652,7 @@ async def AddTimeToUser(tgid, timetoadd):
 
         requests.post(f"{BASE_URL}/wireguard/client", data=json.dumps({"name": str(userdat.tgid)}), headers={"Content-Type": "application/json", "password": f"{PASSWORD}"})
 
-        await bot.send_message(userdat.tgid, e.emojize('<b>Ваш конфигурационный файл был обновлен</b>\n\nНеобходимо импортировать новый файл в приложение AmneziaVpn.\nНажмите на кнопку <b>Как подключить :gear:</b> и следуйте инструкции для вашего устройства\n\nНе забудьте удалить предыдущее соединение в Amnezia Vpn'), parse_mode="HTML", reply_markup=await main_buttons(userdat, True))
+        await bot.send_message(userdat.tgid, e.emojize('<b>Ваш конфигурационный файл был обновлен</b>\n\nНеобходимо импортировать новый файл в приложение AmneziaVpn.\nНажмите на кнопку <b>Как подключить :gear:</b> и следуйте инструкции для вашего устройства\n\nНе забудьте удалить предыдущее соединение в Amnezia Vpn\n\r\n\rЧто-то не получилось? Напишите нам @vpnducks_support'), parse_mode="HTML", reply_markup=await main_buttons(userdat, True))
     else:
         passdat = int(userdat.subscription) + timetoadd
         await db.execute(f"Update userss set subscription = ?, notion_oneday=false where tgid=?",
