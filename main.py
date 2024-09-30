@@ -110,7 +110,7 @@ async def sendConfig(chatId):
     if user_dat.trial_subscription == False:
         clients = requests.get(f"{BASE_URL}/wireguard/client", headers={"password": f"{PASSWORD}"})
         trialButtons = await getTrialButtons()
-        await bot.send_message(chat_id=chatId, text=f"Пожалуйста, выберите тип телефона или планшета, для которого нужна инструкция для подключения:", parse_mode="HTML", reply_markup=trialButtons)
+        await bot.send_message(chat_id=chatId, text=f"Пожалуйста, выберите тип устройства, для которого нужна инструкция для подключения:", parse_mode="HTML", reply_markup=trialButtons)
     else:
         await bot.send_message(chat_id=chatId, text="Для этого необходимо оплатить подписку", reply_markup=await main_buttons(user_dat))
         await sendPayMessage(chatId)
