@@ -600,7 +600,7 @@ async def Work_with_Message(m: types.Message):
         helpButtons = types.InlineKeyboardMarkup(row_width = 1)
         helpButtons.add(
             types.InlineKeyboardButton(e.emojize(":credit_card: Обновить информацию о подписке"), callback_data="Help:update"),
-            types.InlineKeyboardButton(e.emojize(":heart_hands: Клиентская поддержка"), callback_data="Help:support"),
+            types.InlineKeyboardButton(e.emojize(":heart_hands: Поддержка"), callback_data="Help:support"),
         )
         await bot.send_message(chat_id=m.chat.id, text=msg, parse_mode="HTML", reply_markup=helpButtons)
         return
