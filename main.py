@@ -813,6 +813,9 @@ def checkTime():
                     Butt_main.add(types.KeyboardButton(e.emojize(f":red_circle: Подписка закончилась: {dateto} МСК")))
                     Butt_main.add(types.KeyboardButton(e.emojize(f"Продлить подписку :money_bag:")),types.KeyboardButton(e.emojize(f"Как подключить :gear:")))
                     Butt_main.add(types.KeyboardButton(e.emojize(f"Почему стоит выбрать нас? :smiling_face_with_sunglasses:")), types.KeyboardButton(e.emojize(f"Пригласить :woman_and_man_holding_hands:")))
+                    if i['tgid'] in CONFIG["admin_tg_id"]:
+                        Butt_main.add(types.KeyboardButton(e.emojize(f"Админ-панель :smiling_face_with_sunglasses:")))
+
                     BotChecking = TeleBot(BOTAPIKEY)
                     BotChecking.send_message(i['tgid'],
                                              texts_for_bot["ended_sub_message"],
