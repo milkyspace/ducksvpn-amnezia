@@ -735,7 +735,7 @@ def getCostBySale(month):
     elif month == 12:
         cost = oneMonthCost * perc12
     elif month == 100:
-        cost = 50
+        cost = 70
 
     return int(cost)
 
