@@ -78,7 +78,7 @@ async def getTrialButtons():
         types.InlineKeyboardButton(e.emojize(":mobile_phone: iOS (iPhone, iPad)"), callback_data="Init:iPhone"),
         types.InlineKeyboardButton(e.emojize(":mobile_phone: Android"), callback_data="Init:Android"),
         types.InlineKeyboardButton(e.emojize(":laptop: Windows"), callback_data="Init:Windows"),
-        types.InlineKeyboardButton(e.emojize(":laptop: Macos"), callback_data="Init:Macos")
+        types.InlineKeyboardButton(e.emojize(":laptop: MacOS"), callback_data="Init:Macos")
     )
     return trialButtons
 
@@ -155,20 +155,6 @@ async def addTrialForReferrerByUserId(userId):
         await db.execute(f"Update userss set subscription=subscription+{addTrialTime}, banned=false, trial_continue=false, notion_oneday=false where tgid={referrer_id}")
         await db.commit()
         await bot.send_message(user_dat.referrer_id, f"<b>Поздравляем!</b>\nПользователь, пришедший по вашей ссылке, оплатил подписку, вам добавлен <b>+1 месяц</b> бесплатного доступа", reply_markup=await main_buttons(user_dat_referrer, True), parse_mode="HTML")
-
-@bot.callback_query_handler(func=lambda c: 'Instruction:Query' in c.data)
-async def getInstruction(call: types.CallbackQuery):
-    user_dat = await User.GetInfo(call.from_user.id)
-    buttonsInstruction = types.InlineKeyboardMarkup(keyboard = None, row_width = 2)
-    buttonsInstruction.add(
-        types.InlineKeyboardButton(e.emojize("iPhone"), url="https://telegra.ph/Podklyuchenie-VPN-DUCKS-na-iPhone-09-16"),
-        types.InlineKeyboardButton(e.emojize("Android"), url="https://telegra.ph/Podklyuchenie-VPN-DUCKS-na-Android-09-26-2"),
-        types.InlineKeyboardButton(e.emojize("Windows"), url="https://docs.amnezia.org/ru/documentation/instructions/connect-via-config"),
-        types.InlineKeyboardButton(e.emojize("MacOS"), url="https://docs.amnezia.org/ru/documentation/instructions/connect-via-config"),
-    )
-    await bot.send_message(call.from_user.id, "Выберите свое устройство", reply_markup=buttonsInstruction)
-    await bot.answer_callback_query(call.id)
-    return
 
 @bot.message_handler(commands=['start'])
 async def start(message: types.Message):
