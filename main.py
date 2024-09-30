@@ -630,14 +630,6 @@ async def Buy_month(call: types.CallbackQuery):
 
     Month_count = int(str(call.data).split(":")[1])
     await bot.delete_message(call.message.chat.id, call.message.id)
-    if(Month_count == 1):
-        count = CONFIG['perc_1']
-    if(Month_count == 3):
-        count = CONFIG['perc_3']
-    if(Month_count == 6):
-        count = CONFIG['perc_6']
-    if(Month_count == 12):
-        count = CONFIG['perc_12']
 
     bill = await bot.send_invoice(call.message.chat.id, f"Оплата VPN", f"VPN на {str(Month_count)} мес.", call.data,
                                     currency="RUB",prices=[
@@ -743,7 +735,7 @@ def getCostBySale(month):
     elif month == 12:
         cost = oneMonthCost * perc12
     elif month == 100:
-        cost = 10
+        cost = 100
 
     return int(cost)
 
