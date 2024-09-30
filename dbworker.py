@@ -78,12 +78,10 @@ class User:
         await db.commit()
 
     async def NewPay(self,bill_id,summ,time_to_add,mesid):
-        pay_info = await self.PaymentInfo()
-        if pay_info is None:
-            db = await aiosqlite.connect(DBCONNECT)
-            await db.execute(f"INSERT INTO payments (tgid,bill_id,amount,time_to_add,mesid) values (?,?,?,?,?)",
-                             (self.tgid, str(bill_id),summ,int(time_to_add),str(mesid)))
-            await db.commit()
+        db = await aiosqlite.connect(DBCONNECT)
+        await db.execute(f"INSERT INTO payments (tgid,bill_id,amount,time_to_add,mesid) values (?,?,?,?,?)",
+                         (self.tgid, str(bill_id),summ,int(time_to_add),str(mesid)))
+        await db.commit()
 
     async def GetAllPaymentsInWork(self):
         db = await aiosqlite.connect(DBCONNECT)
