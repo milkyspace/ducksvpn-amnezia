@@ -631,6 +631,8 @@ async def Init(call: types.CallbackQuery):
     else:
         await bot.send_message(user_dat.tgid, e.emojize('Напишите нам @vpnducks_support'), parse_mode="HTML", reply_markup=await main_buttons(user_dat, True))
 
+    await bot.answer_callback_query(call.id)
+
 @bot.callback_query_handler(func=lambda c: 'Referrer' in c.data)
 async def Referrer(call: types.CallbackQuery):
     user_dat = await User.GetInfo(call.from_user.id)
