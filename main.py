@@ -775,7 +775,7 @@ async def got_payment(m):
         addTimeSubscribe,
         m.from_user.id)
 
-    await addTrialForReferrerByUserId(m.from_user.id)
+
 
     for admin in CONFIG["admin_tg_id"]:
         await bot.send_message(admin, f"Новая оплата подписки от @{m.from_user.username} ( {m.from_user.id} ) на <b>{month}</b> мес. : {getCostBySale(month)} руб.", parse_mode="HTML")
