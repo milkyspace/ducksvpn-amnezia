@@ -83,7 +83,7 @@ async def getTrialButtons():
 async def sendPayMessage(chatId):
     Butt_payment = types.InlineKeyboardMarkup()
 
-    if m.from_user.id in CONFIG["admin_tg_id"]:
+    if chatId in CONFIG["admin_tg_id"]:
         Butt_payment.add(
                 types.InlineKeyboardButton(e.emojize(f"Проверка оплаты: {int(getCostBySale(100))} руб."),
                                            callback_data="BuyMonth:100"))
