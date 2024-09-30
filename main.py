@@ -595,6 +595,16 @@ async def Work_with_Message(m: types.Message):
         await bot.send_message(chat_id=m.chat.id, text=msg, parse_mode='HTML')
         return
 
+    if e.demojize(m.text) == "Помощь :heart_hands:":
+        msg = e.emojize(f"Как мы можем вам помочь?")
+        helpButtons = types.InlineKeyboardMarkup(row_width = 1)
+        helpButtons.add(
+            types.InlineKeyboardButton(e.emojize(":credit_card: Обновить информацию о подписке"), callback_data="Help:update"),
+            types.InlineKeyboardButton(e.emojize(":heart_hands: Клиентская поддержка"), callback_data="Help:support"),
+        )
+        await bot.send_message(chat_id=m.chat.id, text=msg, parse_mode="HTML", reply_markup=helpButtons)
+        return
+
     else:
         if "Подписка закончилась:" in m.text:
             await sendPayMessage(m.chat.id)
@@ -611,6 +621,15 @@ async def Init(call: types.CallbackQuery):
     device = str(call.data).split(":")[1]
     await sendConfigAndInstructions(user_dat.tgid, device)
     await bot.answer_callback_query(call.id)
+
+@bot.callback_query_handler(func=lambda c: 'Help:' in c.data)
+async def Init(call: types.CallbackQuery):
+    user_dat = await User.GetInfo(call.from_user.id)
+    command = str(call.data).split(":")[1]
+    if command == 'update':
+        await bot.send_message(user_dat.tgid, e.emojize('Информация о подписке обновлена'), parse_mode="HTML", reply_markup=await main_buttons(user_dat, True))
+    else:
+        await bot.send_message(user_dat.tgid, e.emojize('Напишите нам @vpnducks_support'), parse_mode="HTML", reply_markup=await main_buttons(user_dat, True))
 
 @bot.callback_query_handler(func=lambda c: 'Referrer' in c.data)
 async def Referrer(call: types.CallbackQuery):
@@ -815,7 +834,7 @@ def checkTime():
                     Butt_main = types.ReplyKeyboardMarkup(resize_keyboard=True)
                     Butt_main.add(types.KeyboardButton(e.emojize(f":red_circle: Подписка закончилась: {dateto} МСК")))
                     Butt_main.add(types.KeyboardButton(e.emojize(f"Продлить подписку :money_bag:")),types.KeyboardButton(e.emojize(f"Как подключить :gear:")))
-                    Butt_main.add(types.KeyboardButton(e.emojize(f"Почему стоит выбрать нас? :smiling_face_with_sunglasses:")), types.KeyboardButton(e.emojize(f"Пригласить :woman_and_man_holding_hands:")))
+                    Butt_main.add(types.KeyboardButton(e.emojize(f"Почему стоит выбрать нас? :smiling_face_with_sunglasses:")), types.KeyboardButton(e.emojize(f"Пригласить :woman_and_man_holding_hands:")), types.KeyboardButton(e.emojize(f"Помощь :heart_hands:")))
                     if i['tgid'] in CONFIG["admin_tg_id"]:
                         Butt_main.add(types.KeyboardButton(e.emojize(f"Админ-панель :smiling_face_with_sunglasses:")))
 
