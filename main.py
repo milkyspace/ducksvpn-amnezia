@@ -82,6 +82,11 @@ async def getTrialButtons():
 
 async def sendPayMessage(chatId):
     Butt_payment = types.InlineKeyboardMarkup()
+
+    if m.from_user.id in CONFIG["admin_tg_id"]:
+        Butt_payment.add(
+                types.InlineKeyboardButton(e.emojize(f"Проверка оплаты: {int(getCostBySale(100))} руб."),
+                                           callback_data="BuyMonth:100"))
     Butt_payment.add(
         types.InlineKeyboardButton(e.emojize(f"1 месяц: {int(getCostBySale(1))} руб."),
                                    callback_data="BuyMonth:1"))
@@ -737,6 +742,8 @@ def getCostBySale(month):
         cost = oneMonthCost * perc6
     elif month == 12:
         cost = oneMonthCost * perc12
+    elif month == 10:
+        cost = 10
 
     return int(cost)
 
@@ -767,14 +774,6 @@ async def got_payment(m):
 
     addTimeSubscribe = month * 30 * 24 * 60 * 60
     await AddTimeToUser(m.from_user.id, addTimeSubscribe)
-    if(month == 1):
-        count = CONFIG['perc_1']
-    if(month == 3):
-        count = CONFIG['perc_3']
-    if(month == 6):
-        count = CONFIG['perc_6']
-    if(month == 12):
-        count = CONFIG['perc_12']
 
     payment_id = str(payment.provider_payment_charge_id)
     # save info about user
@@ -788,6 +787,8 @@ async def got_payment(m):
 
     for admin in CONFIG["admin_tg_id"]:
         await bot.send_message(admin, f"Новая оплата подписки от @{m.from_user.username} ( {m.from_user.id} ) на <b>{month}</b> мес. : {getCostBySale(month)} руб.", parse_mode="HTML")
+
+    await bot.send_message(m.from_user.id, f"Информация о подписке обновлена", reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
 
 bot.add_custom_filter(asyncio_filters.StateFilter(bot))
 
