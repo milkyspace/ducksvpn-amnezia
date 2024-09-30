@@ -75,8 +75,10 @@ class MyStates(StatesGroup):
 async def getTrialButtons():
     trialButtons = types.InlineKeyboardMarkup(row_width = 1)
     trialButtons.add(
-        types.InlineKeyboardButton(e.emojize("📱iOS (iPhone, iPad)"), callback_data="Init:iPhone"),
-        types.InlineKeyboardButton(e.emojize("📱Android"), callback_data="Init:Android"),
+        types.InlineKeyboardButton(e.emojize(":mobile_phone: iOS (iPhone, iPad)"), callback_data="Init:iPhone"),
+        types.InlineKeyboardButton(e.emojize(":mobile_phone: Android"), callback_data="Init:Android"),
+        types.InlineKeyboardButton(e.emojize(":laptop: Windows"), callback_data="Init:Windows"),
+        types.InlineKeyboardButton(e.emojize(":laptop: Macos"), callback_data="Init:Macos")
     )
     return trialButtons
 
@@ -127,10 +129,16 @@ async def sendConfigAndInstructions(chatId, device='iPhone'):
 
             instructionIPhone = f"<b>Подключение VPN DUCKS на iOS</b>\n\r\n\r1. Установите приложение <a href='https://apps.apple.com/ru/app/amneziavpn/id1600529900'>AmneziaVPN для iOS из AppStore</a>\n\r2. Откройте прикрепленный выше файл конфигурации vpnducks_{str(user_dat.tgid)}.conf\n\r3. Нажмите на иконку поделиться в левом нижнем углу\n\r4. Найдите AmneziaVPN среди предложенных приложений и кликните по нему\n\r5. Откроется приложение AmneziaVPN и спросит о добавлении конфигурации, согласитесь на добавление конфигурации\n\r6. Нажмите на большую круглую кнопку подключиться на главном экране приложения. Готово\n\r\n\r<a href='https://t.me/vpnducks_video/4'>Видео-инструкция</a>\n\r\n\rЧто-то не получилось? Напишите нам @vpnducks_support"
             instructionAndroid = f"<b>Подключение VPN DUCKS на Android</b>\n\r\n\r1. Установите приложение <a href='https://play.google.com/store/apps/details?id=org.amnezia.vpn'>AmneziaVPN для Android из Google Play</a>\n\r2. Откройте прикрепленный выше файл конфигурации vpnducks_{str(user_dat.tgid)}.conf с помощью приложения AmneziaVPN\n\r3. Откроется приложение AmneziaVPN, нажмите на кнопку подключиться\n\r4. Нажмите на большую круглую кнопку подключиться на главном экране приложения и разрешите смартфону установить VPN соединение. Готово\n\r\n\rЧто-то не получилось? Напишите нам @vpnducks_support"
+            instructionWindows = f"<b>Подключение VPN DUCKS на Windows</b>\n\r\n\r1. Установите программу <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0_x64.exe'>AmneziaVPN для Windows</a>\n\r2. Установите скачанную программу\n\r3.Откройте прикрепленный выше файл конфигурации vpnducks_{str(user_dat.tgid)}.conf в программе AmneziaVPN\n\r4. Нажмите на кнопку подключиться\n\r5. Нажмите на большую круглую кнопку подключиться на главном экране программы и разрешите установить VPN соединение. Готово\n\r\n\rЧто-то не получилось? Напишите нам @vpnducks_support"
+            instructionMacOS = f"<b>Подключение VPN DUCKS на MacOS</b>\n\r\n\r1. Установите приложение <a href='https://github.com/amnezia-vpn/amnezia-client/releases/download/4.7.0.0/AmneziaVPN_4.7.0.0.dmg'>AmneziaVPN для MacOS</a>\n\r2. Установите скачанное приложение\n\r3. Откройте прикрепленный выше файл конфигурации vpnducks_{str(user_dat.tgid)}.conf в приложении AmneziaVPN\n\r4. Нажмите на кнопку подключиться\n\r5. Нажмите на большую круглую кнопку подключиться на главном экране приложения и разрешите установить VPN соединение. Готово\n\r\n\rЧто-то не получилось? Напишите нам @vpnducks_support"
             if(device == "iPhone"):
                 await bot.send_document(chat_id=user_dat.tgid, caption=e.emojize(instructionIPhone), parse_mode="HTML", reply_markup=await main_buttons(user_dat, True), document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
             if(device == "Android"):
                 await bot.send_document(chat_id=user_dat.tgid, caption=e.emojize(instructionAndroid), parse_mode="HTML", reply_markup=await main_buttons(user_dat, True), document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
+            if(device == "Windows"):
+                await bot.send_document(chat_id=user_dat.tgid, caption=e.emojize(instructionWindows), parse_mode="HTML", reply_markup=await main_buttons(user_dat, True), document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
+            if(device == "Macos"):
+                await bot.send_document(chat_id=user_dat.tgid, caption=e.emojize(instructionMacOS), parse_mode="HTML", reply_markup=await main_buttons(user_dat, True), document=configFull, visible_file_name=f"vpnducks_{str(user_dat.tgid)}.conf")
 
 async def addTrialForReferrerByUserId(userId):
     user_dat = await User.GetInfo(userId)
