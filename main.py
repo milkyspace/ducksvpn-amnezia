@@ -134,8 +134,11 @@ async def sendConfigAndInstructions(chatId, device='iPhone'):
 
 async def addTrialForReferrerByUserId(userId):
     user_dat = await User.GetInfo(userId)
-    referrer_id = user_dat.referrer_id
-    if referrer_id is not None and referrer_id.isnumeric():
+    try:
+        referrer_id = int(user_dat.referrer_id)
+    except TypeError:
+        referrer_id = 0
+    if referrer_id != 0:
         user_dat_referrer = await User.GetInfo(user_dat.referrer_id)
         addTrialTime = 30 * CONFIG['count_free_from_referrer'] * 60 * 60 * 24
         db = await aiosqlite.connect(DBCONNECT)
