@@ -136,13 +136,7 @@ async def addTrialForReferrerByUserId(userId):
     user_dat = await User.GetInfo(userId)
     referrer_id = user_dat.referrer_id
     if referrer_id is not None:
-        user_dat_referrer = await User.GetInfo(user_dat.referrer_id)
         addTrialTime = 30 * CONFIG['count_free_from_referrer'] * 60 * 60 * 24
-        db = await aiosqlite.connect(DBCONNECT)
-        db.row_factory = sqlite3.Row
-        subscription = int(user_dat_referrer.subscription) + int(addTrialTime)
-        await db.execute(f"Update userss set subscription=subscription+{addTrialTime}, banned=false, trial_continue=false, notion_oneday=false where tgid={referrer_id}")
-        await db.commit()
         await bot.send_message(user_dat.referrer_id, f"<b>Поздравляем!</b>\nПользователь, пришедший по вашей ссылке, оплатил подписку, вам добавлен <b>+1 месяц</b> бесплатного доступа", reply_markup=await main_buttons(user_dat_referrer, True), parse_mode="HTML")
 
 @bot.callback_query_handler(func=lambda c: 'Instruction:Query' in c.data)
@@ -775,12 +769,12 @@ async def got_payment(m):
         addTimeSubscribe,
         m.from_user.id)
 
+    await addTrialForReferrerByUserId(m.from_user.id)
 
+    await bot.send_message(m.from_user.id, f"Информация о подписке обновлена", reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
 
     for admin in CONFIG["admin_tg_id"]:
         await bot.send_message(admin, f"Новая оплата подписки от @{m.from_user.username} ( {m.from_user.id} ) на <b>{month}</b> мес. : {getCostBySale(month)} руб.", parse_mode="HTML")
-
-    await bot.send_message(m.from_user.id, f"Информация о подписке обновлена", reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
 
 bot.add_custom_filter(asyncio_filters.StateFilter(bot))
 
