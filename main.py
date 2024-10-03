@@ -24,7 +24,6 @@ from telebot.asyncio_handler_backends import State, StatesGroup
 from buttons import main_buttons
 from dbworker import User
 from dotenv import load_dotenv, dotenv_values
-from abc import ABC, abstractmethod
 
 load_dotenv()
 
@@ -58,23 +57,6 @@ BASE_URL = CONFIG["base_url"]
 PASSWORD = CONFIG["password_to_amnezia"]
 
 bot = AsyncTeleBot(CONFIG["tg_token"], state_storage=StateMemoryStorage())
-
-class VpnSystem(ABC):
-    @abstractmethod
-    def add_user(self, purchase):
-        pass
-
-    @abstractmethod
-    def delete_user(self, sale):
-        log.debug('Creating sale invoice', sale)
-
-class GizmoAccountingSystem(AccountingSystem):
-    def add_user(self, purchase):
-        submit_to_gizmo_purchase_service(purchase)
-
-    def delete_user(self, sale):
-        super().create_sale_invoice(sale)
-        submit_to_gizmo_sale_service(sale)
 
 class MyStates(StatesGroup):
     findUserViaId = State()
@@ -190,7 +172,6 @@ async def start(message: types.Message):
             arg_referrer_id = message.text[7:]
             referrer_id = None if arg_referrer_id is None else arg_referrer_id
             await user_dat.Adduser(username, message.from_user.full_name, referrer_id)
-
             # Обработка реферера
             if referrer_id and referrer_id != user_dat.tgid:
                 # Пользователь пришел по реферальной ссылке, обрабатываем это
