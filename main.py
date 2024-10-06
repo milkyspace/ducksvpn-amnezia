@@ -140,7 +140,10 @@ async def sendConfigAndInstructions(chatId, device='iPhone'):
 async def addTrialForReferrerByUserId(userId):
     user_dat = await User.GetInfo(userId)
     try:
-        referrer_id = int(user_dat.referrer_id)
+        if user_dat.referrer_id and user_dat.referrer_id > 0:
+            referrer_id = int(user_dat.referrer_id)
+        else:
+            referrer_id = 0
     except TypeError:
         referrer_id = 0
     if referrer_id != 0:
@@ -791,8 +794,6 @@ async def got_payment(m):
         m.from_user.id)
 
     await addTrialForReferrerByUserId(m.from_user.id)
-
-    await bot.send_message(m.from_user.id, f"Информация о подписке обновлена", reply_markup=await buttons.main_buttons(user_dat, True), parse_mode="HTML")
 
     for admin in CONFIG["admin_tg_id"]:
         await bot.send_message(admin, f"Новая оплата подписки от @{m.from_user.username} ( {m.from_user.id} ) на <b>{month}</b> мес. : {getCostBySale(month)} руб.", parse_mode="HTML")
